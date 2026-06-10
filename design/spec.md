@@ -195,16 +195,16 @@ successful index.
 ## 12. Architecture
 
 - `Configuration`: Host option contracts and validation.
-- `Indexer`: reference-free indexing models, ports, and orchestration.
+- `Indexer.Core`: reference-free indexing models, ports, and orchestration.
 - `Application`: retrieval handlers, MCP contracts, and policies.
 - `Infrastructure`: retrieval adapters plus concrete NuGet, package-processing,
   hashing, and SQLite indexing implementations.
-- `Indexer.Cli`: one-shot indexing configuration and composition root.
+- `Indexer`: one-shot indexing configuration and composition root.
 - `Host`: retrieval-only MCP transports, diagnostics, tools, and resources.
 
-Configuration, Indexer, and Application have no project references.
-Infrastructure references Application and Indexer. The Indexer CLI references
-Indexer and Infrastructure. Host does not register Indexer services or contact
+Configuration, Indexer Core, and Application have no project references.
+Infrastructure references Application and Indexer Core. The Indexer references
+Indexer Core and Infrastructure. Host does not register indexing services or contact
 package sources.
 
 ## 13. Configuration

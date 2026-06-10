@@ -9,7 +9,7 @@
 ## Run Indexing
 
 Configure feeds and `NuGetSourcesPath` in
-`src/DevContextMcp.Indexer.Cli/appsettings.json`, then create one JSON file per
+`src/DevContextMcp.Indexer/appsettings.json`, then create one JSON file per
 package in that external folder. Relative folder paths resolve from the built
 Indexer CLI executable directory. The Indexer CLI and Host must use the same
 `DevContextMcp:DatabasePath`.
@@ -17,7 +17,7 @@ Indexer CLI executable directory. The Indexer CLI and Host must use the same
 From the repository root, run one indexing refresh:
 
 ```powershell
-dotnet run --project .\src\DevContextMcp.Indexer.Cli\DevContextMcp.Indexer.Cli.csproj
+dotnet run --project .\src\DevContextMcp.Indexer\DevContextMcp.Indexer.csproj
 ```
 
 Exit code `0` means indexing succeeded or no sources were configured. Exit

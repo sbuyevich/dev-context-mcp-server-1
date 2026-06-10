@@ -1,5 +1,5 @@
-using DevContextMcp.Indexer.Cli;
-using DevContextMcp.Indexer.Services;
+using DevContextMcp.Indexer;
+using DevContextMcp.Indexer.Core.Services;
 using DevContextMcp.IntegrationTests.Indexing;
 using DevContextMcp.Server;
 using DevContextMcp.Server.Core.Contracts.Common;

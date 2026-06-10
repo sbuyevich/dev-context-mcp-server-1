@@ -5,7 +5,7 @@ using DevContextMcp.Infrastructure.Indexing.NuGet;
 using DevContextMcp.Infrastructure.Indexing.Persistence;
 using DevContextMcp.Infrastructure.Indexing.Processing;
 using DevContextMcp.Infrastructure.Retrieval;
-using DevContextMcp.Indexer.Abstractions;
+using DevContextMcp.Indexer.Core.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

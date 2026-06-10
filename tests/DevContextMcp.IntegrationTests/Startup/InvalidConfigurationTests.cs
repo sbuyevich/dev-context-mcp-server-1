@@ -1,5 +1,5 @@
 using DevContextMcp.Server;
-using DevContextMcp.Indexer.Cli;
+using DevContextMcp.Indexer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

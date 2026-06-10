@@ -1,6 +1,6 @@
-using DevContextMcp.Indexer;
-using DevContextMcp.Indexer.Abstractions;
-using DevContextMcp.Indexer.Services;
+using DevContextMcp.Indexer.Core;
+using DevContextMcp.Indexer.Core.Abstractions;
+using DevContextMcp.Indexer.Core.Services;
 using DevContextMcp.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 

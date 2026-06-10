@@ -1,6 +1,6 @@
 using System.Text.Json;
-using DevContextMcp.Indexer.Cli;
-using DevContextMcp.Indexer.Cli.Configuration;
+using DevContextMcp.Indexer;
+using DevContextMcp.Indexer.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace DevContextMcp.UnitTests.Configuration;

@@ -1,6 +1,6 @@
 using System.IO.Compression;
 using DevContextMcp.Infrastructure.Indexing.NuGet;
-using DevContextMcp.Indexer.Models;
+using DevContextMcp.Indexer.Core.Models;
 
 namespace DevContextMcp.UnitTests.Indexing;
 

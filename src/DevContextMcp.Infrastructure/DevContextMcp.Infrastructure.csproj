@@ -7,6 +7,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevContextMcp.Server.Core\DevContextMcp.Server.Core.csproj" />
-    <ProjectReference Include="..\DevContextMcp.Indexer\DevContextMcp.Indexer.csproj" />
+    <ProjectReference Include="..\DevContextMcp.Indexer.Core\DevContextMcp.Indexer.Core.csproj" />
   </ItemGroup>
 </Project>

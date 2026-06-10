@@ -26,8 +26,8 @@ search index.
 ```text
 src/
   DevContextMcp.Server.Core/
+  DevContextMcp.Indexer.Core/
   DevContextMcp.Indexer/
-  DevContextMcp.Indexer.Cli/
   DevContextMcp.Infrastructure/
   DevContextMcp.Server/
 tests/

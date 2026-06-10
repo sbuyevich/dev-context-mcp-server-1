@@ -9,9 +9,9 @@ flowchart TD
     Client[MCP client]
     Host[DevContextMcp.Server]
     Application[DevContextMcp.Server.Core]
-    Indexer[DevContextMcp.Indexer]
+    Indexer[DevContextMcp.Indexer.Core]
     Infrastructure[DevContextMcp.Infrastructure]
-    IndexerCli[DevContextMcp.Indexer.Cli]
+    IndexerCli[DevContextMcp.Indexer]
     NuGet[NuGet source]
     Database[(SQLite and FTS5)]
 
@@ -38,7 +38,7 @@ Contains MCP wire contracts, retrieval models and abstractions, and retrieval
 services. It has no project references and does not depend on SQLite, NuGet, or
 MCP transport implementations.
 
-### DevContextMcp.Indexer
+### DevContextMcp.Indexer.Core
 
 Contains the inner indexing feature boundary:
 
@@ -46,7 +46,7 @@ Contains the inner indexing feature boundary:
 - Ports for source access, package processing, configuration, and persistence.
 - `IIndexCoordinator` and indexing orchestration.
 
-Indexer has no project references and contains no hosting, NuGet client,
+Indexer Core has no project references and contains no hosting, NuGet client,
 archive-processing, or SQLite implementation packages.
 
 ### DevContextMcp.Infrastructure
@@ -60,7 +60,7 @@ Implements Application retrieval abstractions and Indexer ports:
 - SQLite schema migration, atomic publication, FTS5 writes, and run history.
 - Local dependency diagnostics.
 
-Infrastructure references Application and Indexer. Retrieval and indexing use
+Infrastructure references Application and Indexer Core. Retrieval and indexing use
 separate registration methods so the Host never composes index writers.
 
 ### DevContextMcp.Server
@@ -76,7 +76,7 @@ Is the MCP executable and retrieval composition root:
 
 The Host does not contact NuGet sources or register Indexer services.
 
-### DevContextMcp.Indexer.Cli
+### DevContextMcp.Indexer
 
 Is the one-shot indexing executable and composition root:
 
@@ -96,10 +96,10 @@ SQLite database at a time.
 ```text
 Application    -> no project references
 Configuration  -> no project references
-Indexer        -> no project references
-Infrastructure -> Application + Indexer
+Indexer.Core   -> no project references
+Infrastructure -> Application + Indexer.Core
 Host           -> Application + Configuration + Infrastructure
-Indexer.Cli    -> Indexer + Infrastructure
+Indexer        -> Indexer.Core + Infrastructure
 Tests          -> projects required by each scenario
 ```
 
@@ -166,13 +166,13 @@ environments. Legacy identifiers select by `EnvironmentOrder` and
 ## Composition
 
 - `Application.AddApplication()` registers retrieval handlers and policies.
-- `Indexer.AddIndexer()` registers indexing orchestration only.
+- `Indexer.Core.AddIndexer()` registers indexing orchestration only.
 - `Infrastructure.AddRetrievalInfrastructure()` registers read-only retrieval
   adapters.
 - `Infrastructure.AddIndexingInfrastructure()` registers concrete indexing
   adapters.
 - `Host.AddDevContextMcpCore()` binds Host configuration and composes retrieval.
-- `Indexer.Cli.AddIndexerCli(configuration)` binds CLI configuration and
+- `Indexer.AddIndexerCli(configuration)` binds CLI configuration and
   composes the complete indexing pipeline.
 - `Host.WithDevContextMcpTools()` publishes tools and resources.
 
@@ -192,7 +192,7 @@ environments. Legacy identifiers select by `EnvironmentOrder` and
 
 - Keep MCP wire shapes in `Application.Contracts`.
 - Add retrieval integrations behind Application abstractions.
-- Keep indexing models, ports, and orchestration in Indexer.
+- Keep indexing models, ports, and orchestration in Indexer Core.
 - Implement external indexing concerns in Infrastructure.
 - Keep executable configuration and lifecycle behavior in Indexer CLI.
 - Never execute package assemblies.

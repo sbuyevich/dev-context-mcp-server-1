@@ -1,5 +1,5 @@
 using System.IO.Compression;
-using DevContextMcp.Indexer.Models;
+using DevContextMcp.Indexer.Core.Models;
 
 namespace DevContextMcp.Infrastructure.Indexing.NuGet;
 

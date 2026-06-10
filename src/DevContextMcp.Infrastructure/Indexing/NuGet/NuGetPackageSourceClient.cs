@@ -1,6 +1,6 @@
 using DevContextMcp.Infrastructure.Indexing.Abstractions;
-using DevContextMcp.Indexer.Abstractions;
-using DevContextMcp.Indexer.Models;
+using DevContextMcp.Indexer.Core.Abstractions;
+using DevContextMcp.Indexer.Core.Models;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Protocol;

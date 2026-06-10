@@ -6,8 +6,8 @@ using DevContextMcp.Server.Core.Contracts.QueryDocs;
 using DevContextMcp.Server.Core.Contracts.ResolveLibrary;
 using DevContextMcp.Server.Core.Retrieval.Services;
 using DevContextMcp.Server;
-using DevContextMcp.Indexer.Cli;
-using DevContextMcp.Indexer.Services;
+using DevContextMcp.Indexer;
+using DevContextMcp.Indexer.Core.Services;
 using DevContextMcp.IntegrationTests.Indexing;
 using DevContextMcp.IntegrationTests.Mcp;
 using Microsoft.Extensions.Configuration;
@@ -87,7 +87,7 @@ public sealed class NuGetRetrievalPipelineTests
                 .HandleAsync(
                     new GetSymbolRequest(
                         $"nuget:{FixtureNuGetPackage.PackageId}",
-                        "DevContextMcp.Indexer.Models.PackageIndexData",
+                        "DevContextMcp.Indexer.Core.Models.PackageIndexData",
                         Version: "1.2.3"),
                     CancellationToken.None);
             Assert.Equal(ToolResultStatus.Ok, symbol.Status);

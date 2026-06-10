@@ -26,7 +26,7 @@ The Indexer CLI is the only process that writes the index. Each invocation
 indexes all configured sources once and exits:
 
 ```powershell
-dotnet run --project .\src\DevContextMcp.Indexer.Cli\DevContextMcp.Indexer.Cli.csproj
+dotnet run --project .\src\DevContextMcp.Indexer\DevContextMcp.Indexer.csproj
 ```
 
 It exits `0` after a successful run or when no sources are configured. It exits

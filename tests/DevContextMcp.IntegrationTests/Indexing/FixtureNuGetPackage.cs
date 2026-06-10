@@ -1,6 +1,6 @@
 using System.IO.Compression;
 using System.Text;
-using DevContextMcp.Indexer.Models;
+using DevContextMcp.Indexer.Core.Models;
 
 namespace DevContextMcp.IntegrationTests.Indexing;
 
@@ -52,11 +52,11 @@ internal static class FixtureNuGetPackage
                 ?? $"# Fixture Documentation\n\nVersion {version} explains indexed package behavior.");
         WriteText(
             archive,
-            "lib/net10.0/DevContextMcp.Indexer.xml",
+            "lib/net10.0/DevContextMcp.Indexer.Core.xml",
             """
             <doc>
               <members>
-                <member name="T:DevContextMcp.Indexer.Models.PackageIndexData">
+                <member name="T:DevContextMcp.Indexer.Core.Models.PackageIndexData">
                   <summary>Fixture XML documentation for a public package index record.</summary>
                 </member>
               </members>
@@ -65,7 +65,7 @@ internal static class FixtureNuGetPackage
 
         var assemblyPath = typeof(PackageIndexData).Assembly.Location;
         var assemblyEntry = archive.CreateEntry(
-            "lib/net10.0/DevContextMcp.Indexer.dll",
+            "lib/net10.0/DevContextMcp.Indexer.Core.dll",
             CompressionLevel.NoCompression);
         using var source = File.OpenRead(assemblyPath);
         using var destination = assemblyEntry.Open();

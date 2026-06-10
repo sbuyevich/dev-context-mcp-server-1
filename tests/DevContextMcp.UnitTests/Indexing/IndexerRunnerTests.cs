@@ -1,7 +1,7 @@
-using DevContextMcp.Indexer.Cli;
-using DevContextMcp.Indexer.Cli.Configuration;
-using DevContextMcp.Indexer.Models;
-using DevContextMcp.Indexer.Services;
+using DevContextMcp.Indexer;
+using DevContextMcp.Indexer.Configuration;
+using DevContextMcp.Indexer.Core.Models;
+using DevContextMcp.Indexer.Core.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 

@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using DevContextMcp.Indexer.Models;
+using DevContextMcp.Indexer.Core.Models;
 
 namespace DevContextMcp.Infrastructure.Indexing.NuGet;
 

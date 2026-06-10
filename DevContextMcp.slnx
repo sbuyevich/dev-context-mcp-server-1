@@ -1,10 +1,14 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/DevContextMcp.Infrastructure/DevContextMcp.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Indexer/">
+    <Project Path="src/DevContextMcp.Indexer.Core/DevContextMcp.Indexer.Core.csproj" />
+    <Project Path="src/DevContextMcp.Indexer/DevContextMcp.Indexer.csproj" />
+  </Folder>
+  <Folder Name="/src/Server/">
     <Project Path="src/DevContextMcp.Server.Core/DevContextMcp.Server.Core.csproj" />
     <Project Path="src/DevContextMcp.Server/DevContextMcp.Server.csproj" />
-    <Project Path="src/DevContextMcp.Indexer/DevContextMcp.Indexer.csproj" />
-    <Project Path="src/DevContextMcp.Indexer.Cli/DevContextMcp.Indexer.Cli.csproj" />
-    <Project Path="src/DevContextMcp.Infrastructure/DevContextMcp.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/DevContextMcp.IntegrationTests/DevContextMcp.IntegrationTests.csproj" />

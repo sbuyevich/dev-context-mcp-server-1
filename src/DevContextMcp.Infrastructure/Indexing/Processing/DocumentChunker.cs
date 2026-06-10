@@ -1,7 +1,7 @@
 using System.Text;
 using System.Xml.Linq;
 using DevContextMcp.Infrastructure.Indexing.Abstractions;
-using DevContextMcp.Indexer.Models;
+using DevContextMcp.Indexer.Core.Models;
 
 namespace DevContextMcp.Infrastructure.Indexing.Processing;
 

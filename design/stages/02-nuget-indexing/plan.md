@@ -9,12 +9,12 @@ This stage does not add natural-language retrieval or ranking. It should make th
 ## Key Decisions
 
 - Keep retrieval layered and indexing vertical:
-  - `DevContextMcp.Indexer`: reference-free source-neutral records, ports, and
+  - `DevContextMcp.Indexer.Core`: reference-free source-neutral records, ports, and
     orchestration.
   - `DevContextMcp.Server.Core`: retrieval use cases and MCP contracts.
   - `DevContextMcp.Infrastructure`: retrieval adapters plus concrete NuGet,
     package-processing, and SQLite indexing implementations.
-  - `DevContextMcp.Indexer.Cli`: one-shot configuration and composition root.
+  - `DevContextMcp.Indexer`: one-shot configuration and composition root.
   - `DevContextMcp.Server.Configuration`: Host option contracts and validation.
   - `DevContextMcp.Server`: retrieval-only MCP composition and diagnostics.
 - Use official NuGet client APIs:

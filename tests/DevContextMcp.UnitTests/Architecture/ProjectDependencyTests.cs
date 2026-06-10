@@ -5,19 +5,19 @@ namespace DevContextMcp.UnitTests.Architecture;
 public sealed class ProjectDependencyTests
 {
     [Fact]
-    public void IndexerHasNoProjectReferences()
+    public void IndexerCoreHasNoProjectReferences()
     {
-        var document = LoadProject("DevContextMcp.Indexer");
+        var document = LoadProject("DevContextMcp.Indexer.Core");
 
         Assert.Empty(ProjectReferences(document));
     }
 
     [Fact]
-    public void IndexerCliReferencesIndexerAndInfrastructure()
+    public void IndexerReferencesIndexerCoreAndInfrastructure()
     {
         AssertProjectReferences(
-            "DevContextMcp.Indexer.Cli",
             "DevContextMcp.Indexer",
+            "DevContextMcp.Indexer.Core",
             "DevContextMcp.Infrastructure");
     }
 
@@ -35,7 +35,7 @@ public sealed class ProjectDependencyTests
         AssertProjectReferences(
             "DevContextMcp.Infrastructure",
             "DevContextMcp.Server.Core",
-            "DevContextMcp.Indexer");
+            "DevContextMcp.Indexer.Core");
     }
 
     [Fact]

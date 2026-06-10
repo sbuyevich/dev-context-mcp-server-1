@@ -1,8 +1,8 @@
 using System.IO.Compression;
 using System.Text;
 using DevContextMcp.Infrastructure.Indexing.Abstractions;
-using DevContextMcp.Indexer.Abstractions;
-using DevContextMcp.Indexer.Models;
+using DevContextMcp.Indexer.Core.Abstractions;
+using DevContextMcp.Indexer.Core.Models;
 using NuGet.Packaging;
 
 namespace DevContextMcp.Infrastructure.Indexing.NuGet;

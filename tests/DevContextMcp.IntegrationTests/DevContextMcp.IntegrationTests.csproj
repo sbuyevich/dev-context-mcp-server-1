@@ -13,8 +13,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DevContextMcp.Server.Core\DevContextMcp.Server.Core.csproj" />
     <ProjectReference Include="..\..\src\DevContextMcp.Server\DevContextMcp.Server.csproj" />
+    <ProjectReference Include="..\..\src\DevContextMcp.Indexer.Core\DevContextMcp.Indexer.Core.csproj" />
     <ProjectReference Include="..\..\src\DevContextMcp.Indexer\DevContextMcp.Indexer.csproj" />
-    <ProjectReference Include="..\..\src\DevContextMcp.Indexer.Cli\DevContextMcp.Indexer.Cli.csproj" />
     <ProjectReference Include="..\..\src\DevContextMcp.Infrastructure\DevContextMcp.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using DevContextMcp.Indexer.Abstractions;
-using DevContextMcp.Indexer.Models;
+using DevContextMcp.Indexer.Core.Abstractions;
+using DevContextMcp.Indexer.Core.Models;
 using Microsoft.Data.Sqlite;
 
 namespace DevContextMcp.Infrastructure.Indexing.Persistence;

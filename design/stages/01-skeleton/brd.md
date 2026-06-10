@@ -35,8 +35,8 @@ The solution contains:
 src/
   DevContextMcp.Server/
   DevContextMcp.Server.Core/
+  DevContextMcp.Indexer.Core/
   DevContextMcp.Indexer/
-  DevContextMcp.Indexer.Cli/
   DevContextMcp.Infrastructure/
 tests/
   DevContextMcp.UnitTests/

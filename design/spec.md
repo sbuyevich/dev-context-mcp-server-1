@@ -245,7 +245,6 @@ Indexer CLI:
         "MaxPackages": 100
       }
     ],
-    "RepositorySources": [],
     "Indexing": {
       "MaxPackageBytes": 104857600,
       "PackageDownloadTimeout": "00:02:00"

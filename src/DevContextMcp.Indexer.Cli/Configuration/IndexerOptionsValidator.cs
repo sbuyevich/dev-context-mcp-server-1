@@ -41,7 +41,6 @@ public sealed class IndexerOptionsValidator :
         ValidateLimits(options.Indexing, failures);
         ValidateSourceNames(options, failures);
         ValidateEnvironments(options.Environments, failures);
-        ValidateRepositorySources(options.RepositorySources, failures);
 
         if (!string.IsNullOrWhiteSpace(options.NuGetSourcesPath))
         {
@@ -96,7 +95,6 @@ public sealed class IndexerOptionsValidator :
         List<string> failures)
     {
         var names = options.Environments.Select(source => source.Name)
-            .Concat(options.RepositorySources.Select(source => source.Name))
             .ToList();
 
         foreach (var name in names.Where(string.IsNullOrWhiteSpace))
@@ -220,19 +218,6 @@ public sealed class IndexerOptionsValidator :
     private static bool IsEnvironment(string value) =>
         !string.IsNullOrWhiteSpace(value)
         && EnvironmentPattern.IsMatch(value);
-
-    private static void ValidateRepositorySources(
-        IEnumerable<RepositorySourceOptions> sources,
-        List<string> failures)
-    {
-        foreach (var source in sources)
-        {
-            ConfigurationValidation.ValidatePath(
-                source.RootPath,
-                $"Repository source '{source.Name}' root path",
-                failures);
-        }
-    }
 
     private sealed class EnvironmentPackageComparer :
         IEqualityComparer<(string Environment, string PackageId)>

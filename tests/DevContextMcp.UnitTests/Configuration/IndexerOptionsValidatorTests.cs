@@ -29,14 +29,10 @@ public sealed class IndexerOptionsValidatorTests
         var result = Validate(new IndexerOptions
         {
             NuGetSourcesPath = folder.Path,
-            Environments = [Feed("qa", "internal")],
-            RepositorySources =
+            Environments =
             [
-                new RepositorySourceOptions
-                {
-                    Name = "Internal",
-                    RootPath = "repositories/internal"
-                }
+                Feed("qa", "internal"),
+                Feed("production", "Internal")
             ]
         });
 

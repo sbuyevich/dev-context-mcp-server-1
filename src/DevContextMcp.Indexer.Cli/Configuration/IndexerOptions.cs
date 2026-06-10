@@ -13,7 +13,5 @@ public sealed class IndexerOptions
 
     public List<NuGetEnvironmentOptions> Environments { get; set; } = [];
 
-    public List<RepositorySourceOptions> RepositorySources { get; set; } = [];
-
     public IndexingOptions Indexing { get; set; } = new();
 }

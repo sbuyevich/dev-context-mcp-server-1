@@ -41,7 +41,6 @@ Define:
 
 - `DevContextMcpOptions`
 - `NuGetSourceOptions`
-- `RepositorySourceOptions`
 - `IndexingOptions`
 - `RetrievalOptions`
 
@@ -88,5 +87,5 @@ warnings, and errors. Request handlers accept cancellation tokens.
 - `dotnet build` and `dotnet test` pass.
 - Exactly four tools are discoverable over stdio.
 - Startup diagnostics validate registration and local dependencies.
-- No NuGet or repository source is contacted by skeleton diagnostics.
+- No NuGet source is contacted by skeleton diagnostics.
 - README instructions launch the host without corrupting protocol output.

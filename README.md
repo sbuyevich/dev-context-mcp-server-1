@@ -178,7 +178,6 @@ Indexer CLI configuration:
         "MaxPackages": 100
       }
     ],
-    "RepositorySources": [],
     "Indexing": {
       "MaxPackageBytes": 104857600,
       "MaxDocumentBytes": 20971520,
@@ -261,14 +260,13 @@ Indexer CLI after changing its `appsettings.json` or package files.
 | `DatabasePath` | SQLite index created and updated by the Indexer CLI. Use exactly the same path as the Host. Relative paths are resolved from the process working directory. |
 | `NuGetSourcesPath` | External folder containing top-level package JSON files. Relative paths resolve from the Indexer CLI executable directory. The folder must exist and is not copied by the project. Files are loaded once at startup in filename order. |
 | `Environments` | NuGet feeds or local package folders to index. Multiple feeds may share an environment. The collection may be empty; the Indexer CLI then succeeds without doing work. |
-| `RepositorySources` | Reserved configuration for planned repository indexing. Entries are validated, but the current Indexer CLI indexes only configured NuGet environments; leave this as `[]`. |
 | `Indexing` | Download, archive-safety, and document-processing limits described below. |
 
 ### NuGet environment values
 
 | Setting | Meaning and rules |
 | --- | --- |
-| `Name` | Stable, human-readable feed identity such as `nuget.org` or `internal-qa`. It appears in citations and `SourceId`. Names must be non-empty and unique, case-insensitively, across NuGet and repository sources. |
+| `Name` | Stable, human-readable feed identity such as `nuget.org` or `internal-qa`. It appears in citations and `SourceId`. Names must be non-empty and unique case-insensitively. |
 | `Environment` | Selection label such as `production`, `qa`, or `public`. It is required, compared case-insensitively, and may contain only letters, numbers, `.`, `_`, or `-`. Multiple feeds may share an environment. |
 | `ServiceIndex` | Absolute HTTP/HTTPS NuGet v3 service-index URL, or a local package-folder path. Relative local paths are resolved from the Indexer CLI working directory; use an absolute path for predictable deployments. |
 | `MaxPackages` | Maximum package files that may match this feed's environment. It must be positive; exceeding it fails startup. |
@@ -286,13 +284,6 @@ Indexer CLI after changing its `appsettings.json` or package files.
 Each feed is indexed and published once with all package files matching its
 environment. A feed with no matching files is skipped without pruning existing
 data.
-
-### Repository source values
-
-| Setting | Meaning and rules |
-| --- | --- |
-| `Name` | Unique source identity shared with the NuGet source namespace. |
-| `RootPath` | Valid local repository root path. This is validated but not indexed by the current Indexer. |
 
 ### Indexing values
 

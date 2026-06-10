@@ -74,7 +74,6 @@ Define and validate:
 
 - Database location.
 - NuGet sources.
-- Repository sources.
 - Recommended package versions.
 - Indexing safety and processing limits.
 

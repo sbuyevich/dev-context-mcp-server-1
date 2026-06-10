@@ -169,16 +169,12 @@ Indexer CLI configuration:
 {
   "DevContextMcp": {
     "DatabasePath": "data/docs.db",
-    "NuGetSources": [
+    "NuGetSourcesPath": "nuget-sources",
+    "Environments": [
       {
-        "Name": "internal",
         "Environment": "production",
+        "Name": "internal",
         "ServiceIndex": "https://packages.example/v3/index.json",
-        "PackageIds": [ "Company.Foundation" ],
-        "PackagePrefixes": [],
-        "IncludePrerelease": false,
-        "IncludeUnlisted": false,
-        "MaxVersionsPerPackage": 3,
         "MaxPackages": 100
       }
     ],
@@ -193,6 +189,19 @@ Indexer CLI configuration:
       "PackageDownloadTimeout": "00:02:00"
     }
   }
+}
+```
+
+Create one top-level JSON file per package in the external
+`nuget-sources` folder:
+
+```json
+{
+  "Environment": "production",
+  "PackageId": "Company.Foundation",
+  "MaxVersionsPerPackage": 3,
+  "IncludePrerelease": false,
+  "IncludeUnlisted": false
 }
 ```
 
@@ -220,10 +229,12 @@ dotnet run --project .\src\DevContextMcp.Server\DevContextMcp.Server.csproj `
 Environment variables and command-line arguments override JSON values.
 Collection entries use a zero-based index. `TimeSpan` values use `hh:mm:ss`,
 so `00:02:00` means two minutes. Invalid values fail startup rather than
-silently falling back.
+silently falling back. Overrides may change `Environments` and
+`NuGetSourcesPath`; package policy fields are owned only by the external JSON
+files.
 
 Configuration is read when the process starts. Restart the Host or rerun the
-Indexer CLI after changing its `appsettings.json`.
+Indexer CLI after changing its `appsettings.json` or package files.
 
 ### Host values
 
@@ -248,26 +259,33 @@ Indexer CLI after changing its `appsettings.json`.
 | Setting | Meaning and rules |
 | --- | --- |
 | `DatabasePath` | SQLite index created and updated by the Indexer CLI. Use exactly the same path as the Host. Relative paths are resolved from the process working directory. |
-| `NuGetSources` | NuGet feeds or local package folders to index. The collection may be empty; the Indexer CLI then succeeds without doing work. |
-| `RepositorySources` | Reserved configuration for planned repository indexing. Entries are validated, but the current Indexer CLI indexes only `NuGetSources`; leave this as `[]`. |
+| `NuGetSourcesPath` | External folder containing top-level package JSON files. Relative paths resolve from the Indexer CLI executable directory. The folder must exist and is not copied by the project. Files are loaded once at startup in filename order. |
+| `Environments` | NuGet feeds or local package folders to index. Multiple feeds may share an environment. The collection may be empty; the Indexer CLI then succeeds without doing work. |
+| `RepositorySources` | Reserved configuration for planned repository indexing. Entries are validated, but the current Indexer CLI indexes only configured NuGet environments; leave this as `[]`. |
 | `Indexing` | Download, archive-safety, and document-processing limits described below. |
 
-### NuGet source values
+### NuGet environment values
 
 | Setting | Meaning and rules |
 | --- | --- |
 | `Name` | Stable, human-readable feed identity such as `nuget.org` or `internal-qa`. It appears in citations and `SourceId`. Names must be non-empty and unique, case-insensitively, across NuGet and repository sources. |
 | `Environment` | Selection label such as `production`, `qa`, or `public`. It is required, compared case-insensitively, and may contain only letters, numbers, `.`, `_`, or `-`. Multiple feeds may share an environment. |
 | `ServiceIndex` | Absolute HTTP/HTTPS NuGet v3 service-index URL, or a local package-folder path. Relative local paths are resolved from the Indexer CLI working directory; use an absolute path for predictable deployments. |
-| `PackageIds` | Explicit package IDs to index. Use this for a known package, especially an unlisted package that search cannot discover. Empty strings are invalid. |
-| `PackagePrefixes` | NuGet search terms used to discover package IDs, followed by a case-insensitive `StartsWith` check. For example, `Company.` discovers matching listed packages. Search normally cannot discover new unlisted packages. |
-| `IncludePrerelease` | When `true`, discovery and metadata selection may include prerelease versions. Retrieval still requires its request-level `IncludePrerelease` flag before selecting a prerelease by fallback or recommendation. |
-| `IncludeUnlisted` | When `true`, metadata selection may include unlisted versions. Prefer `PackageIds` because prefix search may not discover an unlisted package. |
-| `MaxVersionsPerPackage` | Maximum newest versions selected from each package during a run after prerelease and unlisted filters. It must be positive. There is no unlimited value; use a sufficiently large number when all available versions are required. Lowering it does not delete versions already indexed. |
-| `MaxPackages` | Maximum distinct package IDs processed for this source after combining explicit IDs and prefix discoveries. It must be positive. IDs are ordered case-insensitively before the cap is applied. |
+| `MaxPackages` | Maximum package files that may match this feed's environment. It must be positive; exceeding it fails startup. |
 
-At least one non-empty `PackageIds` or `PackagePrefixes` entry is required for
-each NuGet source.
+### NuGet package-file values
+
+| Setting | Meaning and rules |
+| --- | --- |
+| `Environment` | Environment whose package policy is applied to every matching feed. It must reference a configured environment slug. |
+| `PackageId` | Exact package ID to index. It is required and must be unique case-insensitively within its environment. |
+| `IncludePrerelease` | When `true`, discovery and metadata selection may include prerelease versions. Retrieval still requires its request-level `IncludePrerelease` flag before selecting a prerelease by fallback or recommendation. |
+| `IncludeUnlisted` | When `true`, metadata selection may include unlisted versions. |
+| `MaxVersionsPerPackage` | Maximum newest versions retained for each package after prerelease and unlisted filters. It must be positive. There is no unlimited value; use a sufficiently large number when all available versions are required. Lowering it prunes versions outside the retained set on the next successful feed publication. |
+
+Each feed is indexed and published once with all package files matching its
+environment. A feed with no matching files is skipped without pruning existing
+data.
 
 ### Repository source values
 
@@ -320,8 +338,9 @@ The Indexer CLI must first index a version before the Host can select it.
 
 Give both processes the same preferably absolute `DatabasePath`. Although the
 JSON file is loaded from the executable directory, relative database and local
-source paths are resolved from the process working directory. If relative
-paths are used, launch both processes from the same directory.
+feed paths are resolved from the process working directory.
+`NuGetSourcesPath` is the exception: relative values resolve from the Indexer
+CLI executable directory.
 
 After upgrading an existing database, run the Indexer CLI before the Host so it
 can apply the current schema migration.
@@ -337,7 +356,7 @@ providers.
 
 Generated API clients require no special configuration. Publish them as NuGet
 packages with a README, XML documentation, and public assemblies, then include
-their package IDs or prefixes in a configured NuGet source.
+one package-policy JSON file for each exact package ID.
 
 ## Design
 

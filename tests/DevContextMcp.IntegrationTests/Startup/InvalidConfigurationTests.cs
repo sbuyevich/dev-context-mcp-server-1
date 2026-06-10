@@ -40,6 +40,10 @@ public sealed class InvalidConfigurationTests
     [Fact]
     public async Task InvalidIndexerConfigurationFailsStartup()
     {
+        var sourcesPath = Path.Combine(
+            Path.GetTempPath(),
+            $"mcp-doc-invalid-config-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(sourcesPath);
         var builder = Microsoft.Extensions.Hosting.Host.CreateApplicationBuilder(
             new HostApplicationBuilderSettings
             {
@@ -51,16 +55,24 @@ public sealed class InvalidConfigurationTests
             new Dictionary<string, string?>
             {
                 ["DevContextMcp:DatabasePath"] = "data/docs.db",
+                ["DevContextMcp:NuGetSourcesPath"] = sourcesPath,
                 ["DevContextMcp:Indexing:MaxPackageBytes"] = "0"
             });
         builder.Logging.ClearProviders();
         builder.Services.AddIndexerCli(builder.Configuration);
 
-        using var host = builder.Build();
+        try
+        {
+            using var host = builder.Build();
 
-        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() =>
-            host.StartAsync(CancellationToken.None));
+            var exception = await Assert.ThrowsAsync<OptionsValidationException>(() =>
+                host.StartAsync(CancellationToken.None));
 
-        Assert.Contains("MaxPackageBytes", exception.Message, StringComparison.Ordinal);
+            Assert.Contains("MaxPackageBytes", exception.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Directory.Delete(sourcesPath, recursive: true);
+        }
     }
 }

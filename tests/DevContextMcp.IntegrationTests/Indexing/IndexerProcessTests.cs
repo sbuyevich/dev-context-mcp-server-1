@@ -48,7 +48,7 @@ public sealed class IndexerProcessTests
             var result = await RunIndexerAsync(feed, databasePath);
 
             Assert.Equal(1, result.ExitCode);
-            Assert.Contains("Status=failed", result.Logs, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Status: failed", result.Logs, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
@@ -75,7 +75,7 @@ public sealed class IndexerProcessTests
 
             Assert.Equal(1, result.ExitCode);
             Assert.Contains(
-                "Status=partial_success",
+                "Status: partial_success",
                 result.Logs,
                 StringComparison.OrdinalIgnoreCase);
         }
@@ -91,6 +91,14 @@ public sealed class IndexerProcessTests
         IReadOnlyList<string>? packageIds = null)
     {
         packageIds ??= [FixtureNuGetPackage.PackageId];
+        var sourcesPath = FixtureNuGetConfiguration.CreatePackageFolder(
+            Directory.GetParent(feed)!.FullName,
+            packageIds
+                .Select(packageId => new FixtureNuGetConfiguration.PackagePolicy(
+                    "test",
+                    packageId,
+                    MaxVersionsPerPackage: 1))
+                .ToArray());
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(45));
         var startInfo = new ProcessStartInfo
         {
@@ -103,18 +111,12 @@ public sealed class IndexerProcessTests
         };
         startInfo.ArgumentList.Add(IndexerAssemblyPath());
         startInfo.ArgumentList.Add($"--DevContextMcp:DatabasePath={databasePath}");
-        startInfo.ArgumentList.Add("--DevContextMcp:NuGetSources:0:Name=fixture");
-        startInfo.ArgumentList.Add("--DevContextMcp:NuGetSources:0:Environment=test");
+        startInfo.ArgumentList.Add($"--DevContextMcp:NuGetSourcesPath={sourcesPath}");
+        startInfo.ArgumentList.Add("--DevContextMcp:Environments:0:Name=fixture");
+        startInfo.ArgumentList.Add("--DevContextMcp:Environments:0:Environment=test");
         startInfo.ArgumentList.Add(
-            $"--DevContextMcp:NuGetSources:0:ServiceIndex={feed}");
-        for (var index = 0; index < packageIds.Count; index++)
-        {
-            startInfo.ArgumentList.Add(
-                $"--DevContextMcp:NuGetSources:0:PackageIds:{index}={packageIds[index]}");
-        }
-        startInfo.ArgumentList.Add(
-            "--DevContextMcp:NuGetSources:0:MaxVersionsPerPackage=1");
-        startInfo.ArgumentList.Add("--DevContextMcp:NuGetSources:0:MaxPackages=10");
+            $"--DevContextMcp:Environments:0:ServiceIndex={feed}");
+        startInfo.ArgumentList.Add("--DevContextMcp:Environments:0:MaxPackages=10");
         startInfo.ArgumentList.Add(
             "--DevContextMcp:Indexing:MaxCompressionRatio=10000");
 

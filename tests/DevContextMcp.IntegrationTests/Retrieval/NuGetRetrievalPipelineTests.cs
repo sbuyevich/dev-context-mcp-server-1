@@ -172,17 +172,22 @@ public sealed class NuGetRetrievalPipelineTests
 
     private static ServiceProvider CreateProvider(string feed, string databasePath)
     {
+        var root = Directory.GetParent(feed)!.FullName;
+        var sourcesPath = FixtureNuGetConfiguration.CreatePackageFolder(
+            root,
+            new FixtureNuGetConfiguration.PackagePolicy(
+                "test",
+                FixtureNuGetPackage.PackageId,
+                IncludePrerelease: true));
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["DevContextMcp:DatabasePath"] = databasePath,
-                ["DevContextMcp:NuGetSources:0:Name"] = "fixture",
-                ["DevContextMcp:NuGetSources:0:Environment"] = "test",
-                ["DevContextMcp:NuGetSources:0:ServiceIndex"] = feed,
-                ["DevContextMcp:NuGetSources:0:PackageIds:0"] = FixtureNuGetPackage.PackageId,
-                ["DevContextMcp:NuGetSources:0:IncludePrerelease"] = "true",
-                ["DevContextMcp:NuGetSources:0:MaxVersionsPerPackage"] = "10",
-                ["DevContextMcp:NuGetSources:0:MaxPackages"] = "10",
+                ["DevContextMcp:NuGetSourcesPath"] = sourcesPath,
+                ["DevContextMcp:Environments:0:Name"] = "fixture",
+                ["DevContextMcp:Environments:0:Environment"] = "test",
+                ["DevContextMcp:Environments:0:ServiceIndex"] = feed,
+                ["DevContextMcp:Environments:0:MaxPackages"] = "10",
                 ["DevContextMcp:Indexing:MaxCompressionRatio"] = "10000",
                 [$"DevContextMcp:RecommendedVersions:{FixtureNuGetPackage.PackageId}"] = "1.2.3"
             })

@@ -67,14 +67,13 @@ public sealed class IndexerRunnerTests
         new(
             Options.Create(new IndexerOptions
             {
-                NuGetSources =
+                Environments =
                 [
-                    new NuGetSourceOptions
+                    new NuGetEnvironmentOptions
                     {
                         Name = "fixture",
                         Environment = "test",
-                        ServiceIndex = "fixture",
-                        PackageIds = ["Fixture.Package"]
+                        ServiceIndex = "fixture"
                     }
                 ]
             }),

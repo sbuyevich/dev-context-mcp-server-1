@@ -13,74 +13,32 @@ internal sealed class NuGetPackageSourceClient(
     INuGetSourceAuthenticationProvider authenticationProvider,
     IContentHasher contentHasher) : IPackageSourceClient
 {
-    private const int SearchPageSize = 100;
-
     public async Task<IReadOnlyList<PackageVersionCandidate>> DiscoverAsync(
         IndexSourceDefinition source,
         CancellationToken cancellationToken)
     {
         var repository = CreateRepository(source);
         using var cache = new SourceCacheContext();
-        var packageIds = new HashSet<string>(
-            source.PackageIds.Where(id => !string.IsNullOrWhiteSpace(id)),
-            StringComparer.OrdinalIgnoreCase);
-
-        if (source.PackagePrefixes.Count > 0)
-        {
-            var search = await repository.GetResourceAsync<PackageSearchResource>(
-                cancellationToken);
-
-            foreach (var prefix in source.PackagePrefixes)
-            {
-                for (var skip = 0; packageIds.Count < source.MaxPackages;)
-                {
-                    var results = (await search.SearchAsync(
-                        prefix,
-                        new SearchFilter(source.IncludePrerelease),
-                        skip,
-                        Math.Min(SearchPageSize, source.MaxPackages - packageIds.Count),
-                        NullLogger.Instance,
-                        cancellationToken)).ToArray();
-
-                    foreach (var result in results)
-                    {
-                        if (result.Identity.Id.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                        {
-                            packageIds.Add(result.Identity.Id);
-                        }
-                    }
-
-                    if (results.Length < SearchPageSize)
-                    {
-                        break;
-                    }
-
-                    skip += results.Length;
-                }
-            }
-        }
-
         var metadataResource = await repository.GetResourceAsync<PackageMetadataResource>(
             cancellationToken);
         var candidates = new List<PackageVersionCandidate>();
 
-        foreach (var packageId in packageIds
-                     .Order(StringComparer.OrdinalIgnoreCase)
-                     .Take(source.MaxPackages))
+        foreach (var package in source.Packages
+                     .OrderBy(item => item.PackageId, StringComparer.OrdinalIgnoreCase))
         {
             var metadata = await metadataResource.GetMetadataAsync(
-                packageId,
-                source.IncludePrerelease,
-                source.IncludeUnlisted,
+                package.PackageId,
+                package.IncludePrerelease,
+                package.IncludeUnlisted,
                 cache,
                 NullLogger.Instance,
                 cancellationToken);
 
             var selectedMetadata = metadata
-                .Where(item => source.IncludePrerelease || !item.Identity.Version.IsPrerelease)
-                .Where(item => source.IncludeUnlisted || item.IsListed)
+                .Where(item => package.IncludePrerelease || !item.Identity.Version.IsPrerelease)
+                .Where(item => package.IncludeUnlisted || item.IsListed)
                 .OrderByDescending(item => item.Identity.Version, VersionComparer.VersionRelease)
-                .Take(source.MaxVersionsPerPackage)
+                .Take(package.MaxVersions)
                 .ToArray();
 
             foreach (var item in selectedMetadata)
@@ -95,7 +53,12 @@ internal sealed class NuGetPackageSourceClient(
             }
         }
 
-        return candidates;
+        return candidates
+            .GroupBy(
+                candidate => (candidate.PackageId, candidate.Version),
+                PackageVersionComparer.Instance)
+            .Select(group => group.First())
+            .ToArray();
     }
 
     public async Task<DownloadedPackage> DownloadAsync(
@@ -167,5 +130,22 @@ internal sealed class NuGetPackageSourceClient(
         var packageSource = new PackageSource(source.ServiceIndex, source.Name);
         authenticationProvider.Configure(packageSource, source.Name);
         return Repository.Factory.GetCoreV3(packageSource);
+    }
+
+    private sealed class PackageVersionComparer :
+        IEqualityComparer<(string PackageId, string Version)>
+    {
+        public static PackageVersionComparer Instance { get; } = new();
+
+        public bool Equals(
+            (string PackageId, string Version) x,
+            (string PackageId, string Version) y) =>
+            string.Equals(x.PackageId, y.PackageId, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(x.Version, y.Version, StringComparison.OrdinalIgnoreCase);
+
+        public int GetHashCode((string PackageId, string Version) obj) =>
+            HashCode.Combine(
+                StringComparer.OrdinalIgnoreCase.GetHashCode(obj.PackageId),
+                StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Version));
     }
 }

@@ -81,6 +81,7 @@ The Host does not contact NuGet sources or register Indexer services.
 Is the one-shot indexing executable and composition root:
 
 - Owns indexing configuration, validation, and `appsettings.json`.
+- Loads and caches externally provisioned package-policy JSON files at startup.
 - Converts CLI options into source-neutral Indexer settings.
 - Registers Indexer orchestration and Infrastructure indexing adapters.
 - Runs every configured source once and reports summaries.
@@ -131,6 +132,12 @@ Package content hashes and deterministic IDs make repeated runs idempotent.
 Unchanged package content is not rewritten. `index_runs` intentionally records
 each execution, while canonical package, version, artifact, and symbol rows are
 not duplicated.
+
+Feed definitions come from normal .NET configuration. Exact package-selection
+policies come from an external folder and are joined by environment. Multiple
+feeds may share one environment; each matching feed is discovered and
+published once with the complete package set. Feeds with no matching package
+files are omitted so existing rows are not pruned.
 
 ## Retrieval Flow
 

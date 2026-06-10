@@ -92,14 +92,23 @@ Version parsing and ordering use `NuGet.Versioning`.
 
 ### 7.1 Sources
 
-NuGet sources are configured with:
+NuGet feeds are configured with:
 
 - Stable source name.
 - Required environment slug.
 - NuGet v3 service index URL or approved local package folder.
-- Allowed package IDs and prefixes.
-- Prerelease and unlisted policies.
-- Package and version limits.
+- Maximum package count.
+
+Package selection is externally provisioned as one top-level JSON file per
+package. Each file contains an environment, exact package ID, prerelease and
+unlisted policies, and a version limit. Relative package-folder paths resolve
+from the Indexer CLI executable directory. Files are loaded once at startup in
+filename order and cannot be overridden field-by-field by environment variables
+or command-line arguments.
+
+Every package file for an environment applies to every feed in that
+environment. Each feed is discovered and atomically published once. A feed
+with no matching package files is skipped without pruning existing data.
 
 Repository roots may be configured for a later source-example indexing stage.
 
@@ -227,16 +236,12 @@ Indexer CLI:
 {
   "DevContextMcp": {
     "DatabasePath": "data/docs.db",
-    "NuGetSources": [
+    "NuGetSourcesPath": "nuget-sources",
+    "Environments": [
       {
-        "Name": "internal",
         "Environment": "production",
+        "Name": "internal",
         "ServiceIndex": "https://packages.example/v3/index.json",
-        "PackagePrefixes": ["Company."],
-        "PackageIds": ["Company.Customer.Client"],
-        "IncludePrerelease": false,
-        "IncludeUnlisted": false,
-        "MaxVersionsPerPackage": 3,
         "MaxPackages": 100
       }
     ],
@@ -246,6 +251,18 @@ Indexer CLI:
       "PackageDownloadTimeout": "00:02:00"
     }
   }
+}
+```
+
+Package file `nuget-sources/Company.Customer.Client.json`:
+
+```json
+{
+  "Environment": "production",
+  "PackageId": "Company.Customer.Client",
+  "MaxVersionsPerPackage": 3,
+  "IncludePrerelease": false,
+  "IncludeUnlisted": false
 }
 ```
 

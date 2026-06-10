@@ -13,6 +13,18 @@ public sealed class IndexerOptionsValidator :
         "^[A-Za-z0-9._-]+$",
         RegexOptions.CultureInvariant);
 
+    private readonly INuGetPackageOptionsLoader _packageOptionsLoader;
+
+    public IndexerOptionsValidator()
+        : this(new NuGetPackageOptionsLoader())
+    {
+    }
+
+    internal IndexerOptionsValidator(INuGetPackageOptionsLoader packageOptionsLoader)
+    {
+        _packageOptionsLoader = packageOptionsLoader;
+    }
+
     public ValidateOptionsResult Validate(string? name, IndexerOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -22,10 +34,19 @@ public sealed class IndexerOptionsValidator :
             options.DatabasePath,
             "DevContextMcp:DatabasePath",
             failures);
+        ConfigurationValidation.ValidatePath(
+            options.NuGetSourcesPath,
+            "DevContextMcp:NuGetSourcesPath",
+            failures);
         ValidateLimits(options.Indexing, failures);
         ValidateSourceNames(options, failures);
-        ValidateNuGetSources(options.NuGetSources, failures);
+        ValidateEnvironments(options.Environments, failures);
         ValidateRepositorySources(options.RepositorySources, failures);
+
+        if (!string.IsNullOrWhiteSpace(options.NuGetSourcesPath))
+        {
+            ValidatePackages(options, failures);
+        }
 
         return failures.Count == 0
             ? ValidateOptionsResult.Success
@@ -74,7 +95,7 @@ public sealed class IndexerOptionsValidator :
         IndexerOptions options,
         List<string> failures)
     {
-        var names = options.NuGetSources.Select(source => source.Name)
+        var names = options.Environments.Select(source => source.Name)
             .Concat(options.RepositorySources.Select(source => source.Name))
             .ToList();
 
@@ -95,8 +116,8 @@ public sealed class IndexerOptionsValidator :
         }
     }
 
-    private static void ValidateNuGetSources(
-        IEnumerable<NuGetSourceOptions> sources,
+    private static void ValidateEnvironments(
+        IEnumerable<NuGetEnvironmentOptions> sources,
         List<string> failures)
     {
         foreach (var source in sources)
@@ -113,31 +134,85 @@ public sealed class IndexerOptionsValidator :
                     $"NuGet source '{source.Name}' must have an absolute HTTP/HTTPS ServiceIndex URI or a valid local path.");
             }
 
-            if (source.PackagePrefixes.Any(string.IsNullOrWhiteSpace))
-            {
-                failures.Add($"NuGet source '{source.Name}' contains an empty package prefix.");
-            }
-
-            if (source.PackageIds.Any(string.IsNullOrWhiteSpace))
-            {
-                failures.Add($"NuGet source '{source.Name}' contains an empty package ID.");
-            }
-
-            if (source.PackagePrefixes.Count == 0 && source.PackageIds.Count == 0)
-            {
-                failures.Add(
-                    $"NuGet source '{source.Name}' must configure at least one package prefix or package ID.");
-            }
-
-            if (source.MaxVersionsPerPackage <= 0)
-            {
-                failures.Add(
-                    $"NuGet source '{source.Name}' MaxVersionsPerPackage must be positive.");
-            }
-
             if (source.MaxPackages <= 0)
             {
                 failures.Add($"NuGet source '{source.Name}' MaxPackages must be positive.");
+            }
+        }
+    }
+
+    private void ValidatePackages(IndexerOptions options, List<string> failures)
+    {
+        IReadOnlyList<NuGetPackageOptions> packages;
+        try
+        {
+            packages = _packageOptionsLoader.Load(options.NuGetSourcesPath);
+        }
+        catch (Exception exception)
+        {
+            failures.Add(exception.Message);
+            return;
+        }
+
+        foreach (var package in packages)
+        {
+            if (!IsEnvironment(package.Environment))
+            {
+                failures.Add(
+                    $"NuGet package '{package.PackageId}' Environment must contain only letters, numbers, '.', '_', or '-'.");
+            }
+
+            if (string.IsNullOrWhiteSpace(package.PackageId))
+            {
+                failures.Add("Every NuGet package configuration must have a non-empty PackageId.");
+            }
+
+            if (package.MaxVersionsPerPackage <= 0)
+            {
+                failures.Add(
+                    $"NuGet package '{package.PackageId}' MaxVersionsPerPackage must be positive.");
+            }
+        }
+
+        var duplicates = packages
+            .Where(package =>
+                !string.IsNullOrWhiteSpace(package.Environment)
+                && !string.IsNullOrWhiteSpace(package.PackageId))
+            .GroupBy(
+                package => (package.Environment, package.PackageId),
+                EnvironmentPackageComparer.Instance)
+            .Where(group => group.Count() > 1);
+
+        foreach (var duplicate in duplicates)
+        {
+            failures.Add(
+                $"NuGet package '{duplicate.Key.PackageId}' is configured more than once in environment '{duplicate.Key.Environment}'.");
+        }
+
+        var configuredEnvironments = options.Environments
+            .Select(source => source.Environment)
+            .Where(environment => !string.IsNullOrWhiteSpace(environment))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var package in packages.Where(package =>
+                     !string.IsNullOrWhiteSpace(package.Environment)
+                     && !configuredEnvironments.Contains(package.Environment)))
+        {
+            failures.Add(
+                $"NuGet package '{package.PackageId}' references undefined environment '{package.Environment}'.");
+        }
+
+        foreach (var source in options.Environments)
+        {
+            var count = packages.Count(package =>
+                string.Equals(
+                    package.Environment,
+                    source.Environment,
+                    StringComparison.OrdinalIgnoreCase));
+            if (source.MaxPackages > 0 && count > source.MaxPackages)
+            {
+                failures.Add(
+                    $"NuGet source '{source.Name}' matches {count} package configurations, exceeding MaxPackages {source.MaxPackages}.");
             }
         }
     }
@@ -157,5 +232,22 @@ public sealed class IndexerOptionsValidator :
                 $"Repository source '{source.Name}' root path",
                 failures);
         }
+    }
+
+    private sealed class EnvironmentPackageComparer :
+        IEqualityComparer<(string Environment, string PackageId)>
+    {
+        public static EnvironmentPackageComparer Instance { get; } = new();
+
+        public bool Equals(
+            (string Environment, string PackageId) x,
+            (string Environment, string PackageId) y) =>
+            string.Equals(x.Environment, y.Environment, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(x.PackageId, y.PackageId, StringComparison.OrdinalIgnoreCase);
+
+        public int GetHashCode((string Environment, string PackageId) obj) =>
+            HashCode.Combine(
+                StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Environment),
+                StringComparer.OrdinalIgnoreCase.GetHashCode(obj.PackageId));
     }
 }

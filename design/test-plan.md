@@ -8,9 +8,11 @@
 
 ## Run Indexing
 
-Configure the packages to index in
-`src/DevContextMcp.Indexer.Cli/appsettings.json`. The Indexer CLI and Host must
-use the same `DevContextMcp:DatabasePath`.
+Configure feeds and `NuGetSourcesPath` in
+`src/DevContextMcp.Indexer.Cli/appsettings.json`, then create one JSON file per
+package in that external folder. Relative folder paths resolve from the built
+Indexer CLI executable directory. The Indexer CLI and Host must use the same
+`DevContextMcp:DatabasePath`.
 
 From the repository root, run one indexing refresh:
 

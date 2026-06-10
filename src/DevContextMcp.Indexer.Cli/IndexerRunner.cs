@@ -13,9 +13,9 @@ internal sealed class IndexerRunner(
 {
     public async Task<bool> RunAsync(CancellationToken cancellationToken)
     {
-        if (options.Value.NuGetSources.Count == 0)
+        if (options.Value.Environments.Count == 0)
         {
-            logger.LogInformation("No NuGet sources are configured; indexing was skipped.");
+            logger.LogInformation("No NuGet environments are configured; indexing was skipped.");
             return true;
         }
 

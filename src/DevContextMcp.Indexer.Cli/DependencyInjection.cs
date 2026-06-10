@@ -17,7 +17,10 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddSingleton<IValidateOptions<IndexerOptions>, IndexerOptionsValidator>();
+        services.AddSingleton<INuGetPackageOptionsLoader, NuGetPackageOptionsLoader>();
+        services.AddSingleton<IValidateOptions<IndexerOptions>>(provider =>
+            new IndexerOptionsValidator(
+                provider.GetRequiredService<INuGetPackageOptionsLoader>()));
         services.AddOptions<IndexerOptions>()
             .Bind(configuration.GetSection(IndexerOptions.SectionName))
             .ValidateOnStart();

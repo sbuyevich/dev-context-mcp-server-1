@@ -165,6 +165,16 @@ public sealed class EnvironmentAwareRetrievalTests
             [$"DevContextMcp:RecommendedVersions:nuget:qa/{FixtureNuGetPackage.PackageId}"] = "2.1.0",
             ["DevContextMcp:Indexing:MaxCompressionRatio"] = "10000"
         };
+        var root = Directory.GetParent(qaPrimary)!.FullName;
+        values["DevContextMcp:NuGetSourcesPath"] =
+            FixtureNuGetConfiguration.CreatePackageFolder(
+                root,
+                new FixtureNuGetConfiguration.PackagePolicy(
+                    "qa",
+                    FixtureNuGetPackage.PackageId),
+                new FixtureNuGetConfiguration.PackagePolicy(
+                    "production",
+                    FixtureNuGetPackage.PackageId));
         AddSource(values, 0, "qa-primary", "qa", qaPrimary);
         AddSource(values, 1, "qa-secondary", "qa", qaSecondary);
         AddSource(values, 2, "production-feed", "production", production);
@@ -186,12 +196,10 @@ public sealed class EnvironmentAwareRetrievalTests
         string environment,
         string serviceIndex)
     {
-        var prefix = $"DevContextMcp:NuGetSources:{index}";
+        var prefix = $"DevContextMcp:Environments:{index}";
         values[$"{prefix}:Name"] = name;
         values[$"{prefix}:Environment"] = environment;
         values[$"{prefix}:ServiceIndex"] = serviceIndex;
-        values[$"{prefix}:PackageIds:0"] = FixtureNuGetPackage.PackageId;
-        values[$"{prefix}:MaxVersionsPerPackage"] = "10";
         values[$"{prefix}:MaxPackages"] = "10";
     }
 }

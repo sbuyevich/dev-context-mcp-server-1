@@ -175,21 +175,153 @@ public sealed class NuGetIndexingPipelineTests
         }
     }
 
+    [Fact]
+    public async Task PackageFilesPublishTogetherAndControlPruning()
+    {
+        const string secondPackageId = "Fixture.Second";
+        var root = Path.Combine(Path.GetTempPath(), $"mcp-doc-pruning-{Guid.NewGuid():N}");
+        var feed = Path.Combine(root, "feed");
+        var databasePath = Path.Combine(root, "index", "docs.db");
+        FixtureNuGetPackage.Create(feed);
+        FixtureNuGetPackage.Create(feed, packageId: secondPackageId);
+        var sourcesPath = FixtureNuGetConfiguration.CreatePackageFolder(
+            root,
+            new FixtureNuGetConfiguration.PackagePolicy(
+                "test",
+                FixtureNuGetPackage.PackageId,
+                MaxVersionsPerPackage: 1),
+            new FixtureNuGetConfiguration.PackagePolicy(
+                "test",
+                secondPackageId,
+                MaxVersionsPerPackage: 1));
+
+        try
+        {
+            using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
+            {
+                var summary = Assert.Single(await provider
+                    .GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None));
+                Assert.Equal(2, summary.Indexed);
+            }
+
+            File.Delete(Path.Combine(sourcesPath, $"test.{secondPackageId}.json"));
+            using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
+            {
+                await provider.GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None);
+            }
+
+            await using var connection = new SqliteConnection(
+                $"Data Source={databasePath};Pooling=False");
+            await connection.OpenAsync();
+            Assert.Equal(
+                1L,
+                await ScalarAsync(connection, "SELECT COUNT(*) FROM library_versions;"));
+
+            File.Delete(Path.Combine(
+                sourcesPath,
+                $"test.{FixtureNuGetPackage.PackageId}.json"));
+            using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
+            {
+                Assert.Empty(await provider.GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None));
+            }
+
+            Assert.Equal(
+                1L,
+                await ScalarAsync(connection, "SELECT COUNT(*) FROM library_versions;"));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task MultipleFeedsSharingEnvironmentAreEachIndexedOnce()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"mcp-doc-shared-env-{Guid.NewGuid():N}");
+        var firstFeed = Path.Combine(root, "first");
+        var secondFeed = Path.Combine(root, "second");
+        var databasePath = Path.Combine(root, "index", "docs.db");
+        FixtureNuGetPackage.Create(firstFeed);
+        FixtureNuGetPackage.Create(secondFeed);
+        var sourcesPath = FixtureNuGetConfiguration.CreatePackageFolder(
+            root,
+            new FixtureNuGetConfiguration.PackagePolicy(
+                "test",
+                FixtureNuGetPackage.PackageId,
+                MaxVersionsPerPackage: 1));
+
+        try
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["DevContextMcp:DatabasePath"] = databasePath,
+                    ["DevContextMcp:NuGetSourcesPath"] = sourcesPath,
+                    ["DevContextMcp:Environments:0:Name"] = "first",
+                    ["DevContextMcp:Environments:0:Environment"] = "test",
+                    ["DevContextMcp:Environments:0:ServiceIndex"] = firstFeed,
+                    ["DevContextMcp:Environments:0:MaxPackages"] = "10",
+                    ["DevContextMcp:Environments:1:Name"] = "second",
+                    ["DevContextMcp:Environments:1:Environment"] = "test",
+                    ["DevContextMcp:Environments:1:ServiceIndex"] = secondFeed,
+                    ["DevContextMcp:Environments:1:MaxPackages"] = "10",
+                    ["DevContextMcp:Indexing:MaxCompressionRatio"] = "10000"
+                })
+                .Build();
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddIndexerCli(configuration);
+            using var provider = services.BuildServiceProvider(validateScopes: true);
+
+            var summaries = await provider.GetRequiredService<IIndexCoordinator>()
+                .IndexAllAsync(CancellationToken.None);
+
+            Assert.Equal(2, summaries.Count);
+            Assert.All(summaries, summary => Assert.Equal(1, summary.Indexed));
+            await using var connection = new SqliteConnection(
+                $"Data Source={databasePath};Pooling=False");
+            await connection.OpenAsync();
+            Assert.Equal(2L, await ScalarAsync(connection, "SELECT COUNT(*) FROM sources;"));
+            Assert.Equal(2L, await ScalarAsync(connection, "SELECT COUNT(*) FROM libraries;"));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
     private static ServiceProvider CreateProvider(
         string feed,
         string databasePath,
-        string environment = "test")
+        string environment = "test",
+        string? sourcesPath = null)
     {
+        var root = Directory.GetParent(feed)!.FullName;
+        sourcesPath ??= FixtureNuGetConfiguration.CreatePackageFolder(
+            root,
+            new FixtureNuGetConfiguration.PackagePolicy(
+                environment,
+                FixtureNuGetPackage.PackageId,
+                MaxVersionsPerPackage: 1));
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["DevContextMcp:DatabasePath"] = databasePath,
-                ["DevContextMcp:NuGetSources:0:Name"] = "fixture",
-                ["DevContextMcp:NuGetSources:0:Environment"] = environment,
-                ["DevContextMcp:NuGetSources:0:ServiceIndex"] = feed,
-                ["DevContextMcp:NuGetSources:0:PackageIds:0"] = FixtureNuGetPackage.PackageId,
-                ["DevContextMcp:NuGetSources:0:MaxVersionsPerPackage"] = "1",
-                ["DevContextMcp:NuGetSources:0:MaxPackages"] = "10",
+                ["DevContextMcp:NuGetSourcesPath"] = sourcesPath,
+                ["DevContextMcp:Environments:0:Name"] = "fixture",
+                ["DevContextMcp:Environments:0:Environment"] = environment,
+                ["DevContextMcp:Environments:0:ServiceIndex"] = feed,
+                ["DevContextMcp:Environments:0:MaxPackages"] = "10",
                 ["DevContextMcp:Indexing:MaxCompressionRatio"] = "10000"
             })
             .Build();

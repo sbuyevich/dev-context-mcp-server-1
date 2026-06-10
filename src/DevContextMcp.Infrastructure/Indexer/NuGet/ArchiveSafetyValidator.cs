@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using DevContextMcp.Indexer.Core.Models;
 
-namespace DevContextMcp.Infrastructure.Indexing.NuGet;
+namespace DevContextMcp.Infrastructure.Indexer.NuGet;
 
 internal static class ArchiveSafetyValidator
 {

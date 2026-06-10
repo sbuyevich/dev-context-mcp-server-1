@@ -1,6 +1,6 @@
-using DevContextMcp.Infrastructure.Indexing.Abstractions;
+using DevContextMcp.Infrastructure.Indexer.Abstractions;
 
-namespace DevContextMcp.Infrastructure.Indexing.NuGet;
+namespace DevContextMcp.Infrastructure.Indexer.NuGet;
 
 internal sealed class AnonymousNuGetSourceAuthenticationProvider :
     INuGetSourceAuthenticationProvider

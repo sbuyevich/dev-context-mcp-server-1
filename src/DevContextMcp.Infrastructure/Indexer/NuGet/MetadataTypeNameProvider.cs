@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
 
-namespace DevContextMcp.Infrastructure.Indexing.NuGet;
+namespace DevContextMcp.Infrastructure.Indexer.NuGet;
 
 internal sealed class MetadataTypeNameProvider :
     ISignatureTypeProvider<string, object?>

@@ -1,4 +1,4 @@
-namespace DevContextMcp.Infrastructure.Indexing.NuGet;
+namespace DevContextMcp.Infrastructure.Indexer.NuGet;
 
 internal sealed class LengthLimitedStream(Stream inner, long maximumLength) : Stream
 {

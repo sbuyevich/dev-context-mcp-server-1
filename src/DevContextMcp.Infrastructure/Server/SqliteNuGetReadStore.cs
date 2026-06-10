@@ -4,7 +4,7 @@ using DevContextMcp.Server.Core.Retrieval.Models;
 using DevContextMcp.Server.Core.Retrieval.Services;
 using Microsoft.Data.Sqlite;
 
-namespace DevContextMcp.Infrastructure.Retrieval;
+namespace DevContextMcp.Infrastructure.Server;
 
 internal sealed class SqliteNuGetReadStore : INuGetReadStore
 {

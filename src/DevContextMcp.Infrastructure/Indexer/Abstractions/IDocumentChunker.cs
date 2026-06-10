@@ -1,6 +1,6 @@
 using DevContextMcp.Indexer.Core.Models;
 
-namespace DevContextMcp.Infrastructure.Indexing.Abstractions;
+namespace DevContextMcp.Infrastructure.Indexer.Abstractions;
 
 internal interface IDocumentChunker
 {

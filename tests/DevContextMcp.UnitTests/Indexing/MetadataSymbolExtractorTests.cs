@@ -1,4 +1,4 @@
-using DevContextMcp.Infrastructure.Indexing.NuGet;
+using DevContextMcp.Infrastructure.Indexer.NuGet;
 using NuGet.Versioning;
 
 namespace DevContextMcp.UnitTests.Indexing;

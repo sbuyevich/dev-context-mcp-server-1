@@ -1,9 +1,9 @@
 using System.Text;
 using System.Xml.Linq;
-using DevContextMcp.Infrastructure.Indexing.Abstractions;
+using DevContextMcp.Infrastructure.Indexer.Abstractions;
 using DevContextMcp.Indexer.Core.Models;
 
-namespace DevContextMcp.Infrastructure.Indexing.Processing;
+namespace DevContextMcp.Infrastructure.Indexer.Processing;
 
 internal sealed class DocumentChunker(IContentHasher hasher) : IDocumentChunker
 {

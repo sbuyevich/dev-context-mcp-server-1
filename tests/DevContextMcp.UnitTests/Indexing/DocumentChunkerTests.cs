@@ -1,4 +1,4 @@
-using DevContextMcp.Infrastructure.Indexing.Processing;
+using DevContextMcp.Infrastructure.Indexer.Processing;
 
 namespace DevContextMcp.UnitTests.Indexing;
 

@@ -1,4 +1,4 @@
-using DevContextMcp.Infrastructure.Retrieval;
+using DevContextMcp.Infrastructure.Server;
 
 namespace DevContextMcp.UnitTests.Retrieval;
 

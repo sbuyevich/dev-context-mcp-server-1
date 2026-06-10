@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace DevContextMcp.Infrastructure.Retrieval;
+namespace DevContextMcp.Infrastructure.Server;
 
 internal static partial class FtsQueryBuilder
 {

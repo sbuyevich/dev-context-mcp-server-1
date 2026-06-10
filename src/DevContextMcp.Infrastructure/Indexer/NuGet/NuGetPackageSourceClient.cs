@@ -1,4 +1,4 @@
-using DevContextMcp.Infrastructure.Indexing.Abstractions;
+using DevContextMcp.Infrastructure.Indexer.Abstractions;
 using DevContextMcp.Indexer.Core.Abstractions;
 using DevContextMcp.Indexer.Core.Models;
 using NuGet.Common;
@@ -7,7 +7,7 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
-namespace DevContextMcp.Infrastructure.Indexing.NuGet;
+namespace DevContextMcp.Infrastructure.Indexer.NuGet;
 
 internal sealed class NuGetPackageSourceClient(
     INuGetSourceAuthenticationProvider authenticationProvider,

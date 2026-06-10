@@ -5,7 +5,7 @@ using DevContextMcp.Indexer.Core.Abstractions;
 using DevContextMcp.Indexer.Core.Models;
 using Microsoft.Data.Sqlite;
 
-namespace DevContextMcp.Infrastructure.Indexing.Persistence;
+namespace DevContextMcp.Infrastructure.Indexer.Persistence;
 
 internal sealed class SqliteIndexStore : IIndexStore
 {

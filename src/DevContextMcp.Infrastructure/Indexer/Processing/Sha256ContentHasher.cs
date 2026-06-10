@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
-using DevContextMcp.Infrastructure.Indexing.Abstractions;
+using DevContextMcp.Infrastructure.Indexer.Abstractions;
 
-namespace DevContextMcp.Infrastructure.Indexing.Processing;
+namespace DevContextMcp.Infrastructure.Indexer.Processing;
 
 internal sealed class Sha256ContentHasher : IContentHasher
 {

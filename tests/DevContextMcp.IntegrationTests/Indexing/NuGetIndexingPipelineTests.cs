@@ -1,6 +1,6 @@
 using DevContextMcp.Indexer;
 using DevContextMcp.Indexer.Core.Services;
-using DevContextMcp.Infrastructure.Indexing.Persistence;
+using DevContextMcp.Infrastructure.Indexer.Persistence;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

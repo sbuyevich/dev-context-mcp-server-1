@@ -96,7 +96,6 @@ public sealed class IndexerRunnerTests
         Assert.Contains("Updated (1):", message);
         Assert.Contains("Updated.Package 3.0.0", message);
         Assert.Contains("Deleted (0):", message);
-        Assert.Contains("(none)", message);
         Assert.DoesNotContain("Changed:", message);
         Assert.DoesNotContain("Unchanged:", message);
     }

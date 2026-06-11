@@ -223,6 +223,19 @@ Create one top-level JSON file per package in the external
 }
 ```
 
+To remove that package from the environment, keep a minimal tombstone file:
+
+```json
+{
+  "Delete": true,
+  "Environment": "production",
+  "PackageId": "Company.Foundation"
+}
+```
+
+The package remains deleted until the tombstone is removed or changed back to
+`Delete: false`.
+
 ### Configuration loading and overrides
 
 The Host and Indexer CLI load their own `appsettings.json` from the executable
@@ -299,13 +312,15 @@ Files are written to `data/logs/server-YYYYMMDD.log` and
 | --- | --- |
 | `Environment` | Environment whose package policy is applied to the feed with the matching `Name`. It must reference a configured environment name. |
 | `PackageId` | Exact package ID to index. It is required and must be unique case-insensitively within its environment. |
+| `Delete` | When `true`, removes every indexed version of the package from this environment without contacting the feed. Delete tombstones require only `Environment` and `PackageId`. The default is `false`. |
 | `IncludePrerelease` | When `true`, discovery and metadata selection may include prerelease versions. Retrieval still requires its request-level `IncludePrerelease` flag before selecting a prerelease by fallback or recommendation. |
 | `IncludeUnlisted` | When `true`, metadata selection may include unlisted versions. |
 | `MaxVersionsPerPackage` | Maximum newest versions retained for each package after prerelease and unlisted filters. It must be positive. There is no unlimited value; use a sufficiently large number when all available versions are required. Lowering it prunes versions outside the retained set on the next successful feed publication. |
 
 Each feed is indexed and published once with all package files whose
-`Environment` matches its `Name`. A feed with no matching files is skipped without pruning existing
-data.
+`Environment` matches its `Name`. Delete tombstones are applied in the same
+transaction but are not discovered or downloaded. A feed with no matching
+files is skipped without pruning existing data.
 
 ### Indexing values
 

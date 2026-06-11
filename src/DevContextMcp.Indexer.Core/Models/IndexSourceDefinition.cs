@@ -5,4 +5,5 @@ public sealed record IndexSourceDefinition(
     string Environment,
     string ServiceIndex,
     IReadOnlyList<PackageSelectionDefinition> Packages,
+    IReadOnlyList<string> DeletedPackageIds,
     int MaxPackages);

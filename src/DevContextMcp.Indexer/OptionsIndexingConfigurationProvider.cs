@@ -34,19 +34,31 @@ internal sealed class OptionsIndexingConfigurationProvider(
                             package.Environment,
                             source.Name,
                             StringComparison.OrdinalIgnoreCase))
+                        .Where(package => !package.Delete)
                         .Select(package => new PackageSelectionDefinition(
                             package.PackageId,
                             package.IncludePrerelease,
                             package.IncludeUnlisted,
                             package.MaxVersionsPerPackage))
+                        .ToArray(),
+                    DeletedPackageIds = packages
+                        .Where(package => string.Equals(
+                            package.Environment,
+                            source.Name,
+                            StringComparison.OrdinalIgnoreCase))
+                        .Where(package => package.Delete)
+                        .Select(package => package.PackageId)
                         .ToArray()
                 })
-                .Where(item => item.Packages.Length > 0)
+                .Where(item =>
+                    item.Packages.Length > 0
+                    || item.DeletedPackageIds.Length > 0)
                 .Select(item => new IndexSourceDefinition(
                     item.Source.Name,
                     item.Source.Name,
                     ResolveSource(item.Source.ServiceIndex),
                     item.Packages,
+                    item.DeletedPackageIds,
                     item.Source.MaxPackages))
                 .ToArray());
     }

@@ -165,7 +165,7 @@ public sealed class IndexerOptionsValidator :
                 failures.Add("Every NuGet package configuration must have a non-empty PackageId.");
             }
 
-            if (package.MaxVersionsPerPackage <= 0)
+            if (!package.Delete && package.MaxVersionsPerPackage <= 0)
             {
                 failures.Add(
                     $"NuGet package '{package.PackageId}' MaxVersionsPerPackage must be positive.");

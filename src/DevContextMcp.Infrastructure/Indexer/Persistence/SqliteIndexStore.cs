@@ -148,15 +148,22 @@ internal sealed class SqliteIndexStore : IIndexStore
                 cancellationToken);
         }
 
-        IReadOnlyList<PackageIdentityKey> deleted = [];
+        var deleted = new List<PackageIdentityKey>();
+        deleted.AddRange(await DeleteConfiguredPackagesAsync(
+            connection,
+            transaction,
+            sourceId,
+            source.DeletedPackageIds,
+            cancellationToken));
+
         if (pruneMissing)
         {
-            deleted = await PruneMissingVersionsAsync(
+            deleted.AddRange(await PruneMissingVersionsAsync(
                 connection,
                 transaction,
                 sourceId,
                 retainedPackages,
-                cancellationToken);
+                cancellationToken));
         }
 
         await RefreshSourceLibrarySearchAsync(
@@ -447,6 +454,114 @@ internal sealed class SqliteIndexStore : IIndexStore
         }
 
         return deleted;
+    }
+
+    private static async Task<IReadOnlyList<PackageIdentityKey>> DeleteConfiguredPackagesAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string sourceId,
+        IReadOnlyList<string> packageIds,
+        CancellationToken cancellationToken)
+    {
+        var deleted = new List<PackageIdentityKey>();
+
+        foreach (var packageId in packageIds)
+        {
+            var library = await GetLibraryAsync(
+                connection,
+                transaction,
+                sourceId,
+                packageId,
+                cancellationToken);
+            if (library is null)
+            {
+                continue;
+            }
+
+            var versions = await GetLibraryVersionsAsync(
+                connection,
+                transaction,
+                library.Value.LibraryId,
+                cancellationToken);
+            foreach (var version in versions)
+            {
+                await DeleteVersionAsync(
+                    connection,
+                    transaction,
+                    version.VersionId,
+                    cancellationToken);
+                deleted.Add(new(library.Value.PackageId, version.Version));
+            }
+
+            await ExecuteAsync(
+                connection,
+                transaction,
+                "DELETE FROM libraries_fts WHERE library_id = $libraryId;",
+                [("$libraryId", library.Value.LibraryId)],
+                cancellationToken);
+            await ExecuteAsync(
+                connection,
+                transaction,
+                "DELETE FROM libraries WHERE id = $libraryId;",
+                [("$libraryId", library.Value.LibraryId)],
+                cancellationToken);
+        }
+
+        return deleted;
+    }
+
+    private static async Task<(string LibraryId, string PackageId)?> GetLibraryAsync(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string sourceId,
+        string packageId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            SELECT id, package_id
+            FROM libraries
+            WHERE source_id = $sourceId
+                AND normalized_package_id = $packageId;
+            """;
+        command.Parameters.AddWithValue("$sourceId", sourceId);
+        command.Parameters.AddWithValue(
+            "$packageId",
+            packageId.Trim().ToLowerInvariant());
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        return await reader.ReadAsync(cancellationToken)
+            ? (reader.GetString(0), reader.GetString(1))
+            : null;
+    }
+
+    private static async Task<IReadOnlyList<(string VersionId, string Version)>>
+        GetLibraryVersionsAsync(
+            SqliteConnection connection,
+            SqliteTransaction transaction,
+            string libraryId,
+            CancellationToken cancellationToken)
+    {
+        var versions = new List<(string VersionId, string Version)>();
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText =
+            """
+            SELECT id, version
+            FROM library_versions
+            WHERE library_id = $libraryId;
+            """;
+        command.Parameters.AddWithValue("$libraryId", libraryId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            versions.Add((reader.GetString(0), reader.GetString(1)));
+        }
+
+        return versions;
     }
 
     private static IReadOnlyList<PackageIdentityKey> SortIdentities(

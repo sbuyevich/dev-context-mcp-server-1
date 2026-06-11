@@ -223,6 +223,256 @@ public sealed class NuGetIndexingPipelineTests
         }
     }
 
+    [Fact]
+    public async Task DeleteTombstoneRemovesAllVersionsWithoutDiscoveringOrPruningOthers()
+    {
+        const string retainedPackageId = "Fixture.Retained";
+        const string olderVersion = "1.0.0";
+        var root = Path.Combine(Path.GetTempPath(), $"mcp-doc-delete-{Guid.NewGuid():N}");
+        var feed = Path.Combine(root, "feed");
+        var databasePath = Path.Combine(root, "index", "docs.db");
+        FixtureNuGetPackage.Create(feed, version: olderVersion);
+        FixtureNuGetPackage.Create(feed);
+        FixtureNuGetPackage.Create(feed, packageId: retainedPackageId);
+        var sourcesPath = FixtureNuGetConfiguration.CreatePackageFolder(
+            root,
+            new FixtureNuGetConfiguration.PackagePolicy(
+                "test",
+                FixtureNuGetPackage.PackageId),
+            new FixtureNuGetConfiguration.PackagePolicy(
+                "test",
+                retainedPackageId,
+                MaxVersionsPerPackage: 1));
+
+        try
+        {
+            using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
+            {
+                var summary = Assert.Single(await provider
+                    .GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None));
+                Assert.Equal(3, summary.Indexed);
+            }
+
+            FixtureNuGetConfiguration.CreatePackageFolder(
+                root,
+                new FixtureNuGetConfiguration.PackagePolicy(
+                    "test",
+                    FixtureNuGetPackage.PackageId,
+                    MaxVersionsPerPackage: 0,
+                    Delete: true));
+            Directory.Delete(feed, recursive: true);
+
+            using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
+            {
+                var summary = Assert.Single(await provider
+                    .GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None));
+
+                Assert.Equal("succeeded", summary.Status);
+                Assert.Equal(0, summary.Discovered);
+                Assert.Equal(0, summary.Indexed);
+                Assert.Equal(0, summary.Changed);
+                Assert.Equal(
+                    [
+                        new PackageIdentityKey(FixtureNuGetPackage.PackageId, olderVersion),
+                        new PackageIdentityKey(
+                            FixtureNuGetPackage.PackageId,
+                            FixtureNuGetPackage.Version)
+                    ],
+                    summary.Deleted);
+            }
+
+            await using var connection = new SqliteConnection(
+                $"Data Source={databasePath};Pooling=False");
+            await connection.OpenAsync();
+            Assert.Equal(
+                1L,
+                await ScalarAsync(connection, "SELECT COUNT(*) FROM library_versions;"));
+            Assert.Equal(
+                retainedPackageId,
+                await TextScalarAsync(connection, "SELECT package_id FROM libraries;"));
+            Assert.Equal(
+                0L,
+                await ScalarAsync(
+                    connection,
+                    $"SELECT COUNT(*) FROM libraries_fts WHERE package_id = '{FixtureNuGetPackage.PackageId}';"));
+
+            using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
+            {
+                var repeated = Assert.Single(await provider
+                    .GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None));
+                Assert.Empty(repeated.Deleted);
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task ActiveAndDeletePackageEntriesPublishTogether()
+    {
+        const string deletedPackageId = "Fixture.Deleted";
+        var root = Path.Combine(Path.GetTempPath(), $"mcp-doc-mixed-delete-{Guid.NewGuid():N}");
+        var feed = Path.Combine(root, "feed");
+        var databasePath = Path.Combine(root, "index", "docs.db");
+        FixtureNuGetPackage.Create(feed);
+        FixtureNuGetPackage.Create(feed, packageId: deletedPackageId);
+        var sourcesPath = FixtureNuGetConfiguration.CreatePackageFolder(
+            root,
+            new FixtureNuGetConfiguration.PackagePolicy(
+                "test",
+                FixtureNuGetPackage.PackageId,
+                MaxVersionsPerPackage: 1),
+            new FixtureNuGetConfiguration.PackagePolicy(
+                "test",
+                deletedPackageId,
+                MaxVersionsPerPackage: 1));
+
+        try
+        {
+            using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
+            {
+                await provider.GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None);
+            }
+
+            FixtureNuGetConfiguration.CreatePackageFolder(
+                root,
+                new FixtureNuGetConfiguration.PackagePolicy(
+                    "test",
+                    FixtureNuGetPackage.PackageId,
+                    MaxVersionsPerPackage: 1),
+                new FixtureNuGetConfiguration.PackagePolicy(
+                    "test",
+                    deletedPackageId,
+                    MaxVersionsPerPackage: 0,
+                    Delete: true));
+
+            using var updatedProvider = CreateProvider(
+                feed,
+                databasePath,
+                sourcesPath: sourcesPath);
+            var summary = Assert.Single(await updatedProvider
+                .GetRequiredService<IIndexCoordinator>()
+                .IndexAllAsync(CancellationToken.None));
+
+            Assert.Equal(1, summary.Discovered);
+            Assert.Equal(1, summary.Indexed);
+            Assert.Equal(
+                [new PackageIdentityKey(deletedPackageId, FixtureNuGetPackage.Version)],
+                summary.Deleted);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task DeleteTombstoneIsScopedToConfiguredEnvironment()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"mcp-doc-delete-scope-{Guid.NewGuid():N}");
+        var qaFeed = Path.Combine(root, "qa-feed");
+        var prodFeed = Path.Combine(root, "prod-feed");
+        var databasePath = Path.Combine(root, "index", "docs.db");
+        FixtureNuGetPackage.Create(qaFeed);
+        FixtureNuGetPackage.Create(prodFeed);
+
+        try
+        {
+            var qaSources = FixtureNuGetConfiguration.CreatePackageFolder(
+                root,
+                new FixtureNuGetConfiguration.PackagePolicy(
+                    "qa",
+                    FixtureNuGetPackage.PackageId,
+                    MaxVersionsPerPackage: 1));
+            using (var provider = CreateProvider(
+                       qaFeed,
+                       databasePath,
+                       environment: "qa",
+                       sourcesPath: qaSources))
+            {
+                await provider.GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None);
+            }
+
+            var prodSources = FixtureNuGetConfiguration.CreatePackageFolder(
+                root,
+                new FixtureNuGetConfiguration.PackagePolicy(
+                    "prod",
+                    FixtureNuGetPackage.PackageId,
+                    MaxVersionsPerPackage: 1));
+            using (var provider = CreateProvider(
+                       prodFeed,
+                       databasePath,
+                       environment: "prod",
+                       sourcesPath: prodSources))
+            {
+                await provider.GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None);
+            }
+
+            FixtureNuGetConfiguration.CreatePackageFolder(
+                root,
+                new FixtureNuGetConfiguration.PackagePolicy(
+                    "prod",
+                    FixtureNuGetPackage.PackageId.ToLowerInvariant(),
+                    MaxVersionsPerPackage: 0,
+                    Delete: true));
+            Directory.Delete(prodFeed, recursive: true);
+            using (var provider = CreateProvider(
+                       prodFeed,
+                       databasePath,
+                       environment: "prod",
+                       sourcesPath: prodSources))
+            {
+                var summary = Assert.Single(await provider
+                    .GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None));
+                Assert.Equal(
+                    [
+                        new PackageIdentityKey(
+                            FixtureNuGetPackage.PackageId,
+                            FixtureNuGetPackage.Version)
+                    ],
+                    summary.Deleted);
+            }
+
+            await using var connection = new SqliteConnection(
+                $"Data Source={databasePath};Pooling=False");
+            await connection.OpenAsync();
+            Assert.Equal(
+                1L,
+                await ScalarAsync(connection, "SELECT COUNT(*) FROM library_versions;"));
+            Assert.Equal(
+                "qa",
+                await TextScalarAsync(
+                    connection,
+                    """
+                    SELECT sources.environment
+                    FROM libraries
+                    INNER JOIN sources ON sources.id = libraries.source_id;
+                    """));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
     private static ServiceProvider CreateProvider(
         string feed,
         string databasePath,

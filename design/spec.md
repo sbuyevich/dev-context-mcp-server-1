@@ -261,6 +261,11 @@ Package file `nuget-sources/Company.Customer.Client.json`:
 }
 ```
 
+Setting `Delete` to `true` turns the file into a persistent tombstone that
+removes every indexed version of the package from the matching environment
+without contacting the feed. Tombstones require only `Environment` and
+`PackageId`.
+
 ## 14. Performance Targets
 
 - Exact symbol lookup p95 below 300 ms.

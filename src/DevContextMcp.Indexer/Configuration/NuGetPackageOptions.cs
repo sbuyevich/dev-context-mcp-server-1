@@ -9,6 +9,8 @@ public sealed class NuGetPackageOptions
 
     public string PackageId { get; set; } = string.Empty;
 
+    public bool Delete { get; set; }
+
     public int MaxVersionsPerPackage { get; set; } = 3;
 
     public bool IncludePrerelease { get; set; }

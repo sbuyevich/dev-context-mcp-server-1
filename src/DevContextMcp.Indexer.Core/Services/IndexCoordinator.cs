@@ -30,11 +30,14 @@ internal sealed class IndexCoordinator(
         CancellationToken cancellationToken)
     {
         var startedAt = DateTimeOffset.UtcNow;
-        IReadOnlyList<PackageVersionCandidate> candidates;
+        IReadOnlyList<PackageVersionCandidate> candidates = [];
 
         try
         {
-            candidates = await sourceClient.DiscoverAsync(source, cancellationToken);
+            if (source.Packages.Count > 0)
+            {
+                candidates = await sourceClient.DiscoverAsync(source, cancellationToken);
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -46,7 +49,7 @@ internal sealed class IndexCoordinator(
             var completedAt = DateTimeOffset.UtcNow;
             await indexStore.PublishSourceAsync(
                 settings.DatabasePath,
-                source,
+                source with { DeletedPackageIds = [] },
                 startedAt,
                 [],
                 [],
@@ -114,7 +117,7 @@ internal sealed class IndexCoordinator(
             indexedPackages,
             retained,
             errors,
-            true,
+            source.Packages.Count > 0,
             cancellationToken);
 
         var status = indexedPackages.Count == 0 && errors.Count > 0

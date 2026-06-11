@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <PackageId>Demo.Countries</PackageId>
-    <AssemblyName>Demo.Countries</AssemblyName>
-    <RootNamespace>Demo.Countries</RootNamespace>
+    <PackageId>Demo.Cities</PackageId>
+    <AssemblyName>Demo.Cities</AssemblyName>
+    <RootNamespace>Demo.Cities</RootNamespace>
     <Version>1.0.0</Version>
     <Authors>DevContextMcp Demo</Authors>
-    <Description>Provides a small injectable country service backed by a fixed list of country names.</Description>
-    <PackageTags>countries;dependency-injection;demo</PackageTags>
+    <Description>Provides a small injectable city service backed by a fixed list of city names.</Description>
+    <PackageTags>cities;dependency-injection;demo</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

@@ -9,7 +9,7 @@
     <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Demo.Countries\Demo.Countries.csproj" />
+    <ProjectReference Include="..\..\src\Demo.Cities\Demo.Cities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Using Include="Xunit" />

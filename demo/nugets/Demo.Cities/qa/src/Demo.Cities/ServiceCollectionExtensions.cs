@@ -9,7 +9,7 @@ namespace Demo.Cities;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the city service with singleton lifetime.
+    /// Registers the general and United States city services with singleton lifetime.
     /// </summary>
     /// <param name="services">The service collection to update.</param>
     /// <returns>The supplied service collection.</returns>
@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddSingleton<ICityService, CityService>();
+        services.TryAddSingleton<IUsaCityService, UsaCityService>();
         return services;
     }
 }

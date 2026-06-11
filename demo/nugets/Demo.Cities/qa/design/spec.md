@@ -17,6 +17,7 @@ public interface ICityService
 ```
 
 - Implement the service with an immutable hardcoded list: Berlin, Chicago, London, Paris, Tokyo, and Toronto.
+- Define `IUsaCityService` with `GetCityNames()` and implement it with an immutable hardcoded list: Chicago, Houston, Los Angeles, New York, Philadelphia, and Phoenix.
 - Register it as a singleton through:
 
 ```csharp
@@ -26,7 +27,8 @@ services.AddDemoCities();
 - Use `Demo.Cities` consistently for the package ID, assembly, project, and root namespace.
 - Enable nullable reference types, implicit usings, XML documentation, deterministic builds, and NuGet package generation.
 - Include package metadata and a README with installation, DI registration, and usage examples.
-- Keep the package free of HTTP, configuration, logging, database, and environment-specific behavior.
+- Register both `ICityService` and the QA-only `IUsaCityService` as singletons.
+- Keep the package free of HTTP, configuration, logging, and database behavior.
 
 ## Tests
 
@@ -34,6 +36,9 @@ services.AddDemoCities();
 - Verify names are alphabetically ordered and contain no duplicates or blanks.
 - Verify callers cannot mutate the package’s internal collection.
 - Verify `AddDemoCities()` resolves `ICityService` and uses singleton lifetime.
+- Verify the exact expected United States city names are returned in alphabetical order without duplicates or blanks.
+- Verify callers cannot mutate the United States city collection.
+- Verify `AddDemoCities()` resolves `IUsaCityService` and uses singleton lifetime.
 - Verify `dotnet build`, `dotnet test`, and `dotnet pack` succeed.
 
 ## Assumptions
@@ -41,5 +46,6 @@ services.AddDemoCities();
 - The package targets only `net10.0`.
 - Version starts at `1.0.0`.
 - City names are plain strings rather than models with coordinates.
+- `IUsaCityService` is available only in the QA package variant.
 - The package is consumed directly as a .NET library, not through an HTTP API.
 - The new specification lives at `demo/nuget/spec.md`.

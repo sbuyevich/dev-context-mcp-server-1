@@ -1,5 +1,5 @@
 using DevContextMcp.Indexer.Core;
-using DevContextMcp.Indexer.Core.Abstractions;
+using DevContextMcp.Indexer.Core.Infrastructure;
 using DevContextMcp.Indexer.Core.Services;
 using DevContextMcp.Infrastructure;
 using DevContextMcp.Server.Core.Diagnostics;

@@ -1,8 +1,8 @@
-using System.Globalization;
-using DevContextMcp.Server.Core.Retrieval.Abstractions;
-using DevContextMcp.Server.Core.Retrieval.Models;
-using DevContextMcp.Server.Core.Retrieval.Services;
+using DevContextMcp.Server.Core.Infrastructure;
+using DevContextMcp.Server.Core.Models;
+using DevContextMcp.Server.Core.Services;
 using Microsoft.Data.Sqlite;
+using System.Globalization;
 
 namespace DevContextMcp.Infrastructure.Server;
 

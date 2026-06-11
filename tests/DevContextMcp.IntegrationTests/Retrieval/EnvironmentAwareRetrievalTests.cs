@@ -6,7 +6,7 @@ using DevContextMcp.Server.Core.Contracts.Common;
 using DevContextMcp.Server.Core.Contracts.ListVersions;
 using DevContextMcp.Server.Core.Contracts.QueryDocs;
 using DevContextMcp.Server.Core.Contracts.ResolveLibrary;
-using DevContextMcp.Server.Core.Retrieval.Services;
+using DevContextMcp.Server.Core.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

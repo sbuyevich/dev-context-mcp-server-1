@@ -1,5 +1,5 @@
 using DevContextMcp.Indexer.Core;
-using DevContextMcp.Indexer.Core.Abstractions;
+using DevContextMcp.Indexer.Core.Infrastructure;
 using DevContextMcp.Indexer.Configuration;
 using DevContextMcp.Infrastructure;
 using Microsoft.Extensions.Configuration;

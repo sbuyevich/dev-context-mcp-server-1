@@ -1,6 +1,6 @@
 using System.IO.Compression;
 using System.Text;
-using DevContextMcp.Indexer.Core.Abstractions;
+using DevContextMcp.Indexer.Core.Infrastructure;
 using DevContextMcp.Indexer.Core.Models;
 using NuGet.Packaging;
 

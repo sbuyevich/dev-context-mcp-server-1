@@ -4,7 +4,7 @@ using DevContextMcp.Server.Core.Contracts.GetSymbol;
 using DevContextMcp.Server.Core.Contracts.ListVersions;
 using DevContextMcp.Server.Core.Contracts.QueryDocs;
 using DevContextMcp.Server.Core.Contracts.ResolveLibrary;
-using DevContextMcp.Server.Core.Retrieval.Services;
+using DevContextMcp.Server.Core.Services;
 using DevContextMcp.Server;
 using DevContextMcp.Indexer;
 using DevContextMcp.Indexer.Core.Services;

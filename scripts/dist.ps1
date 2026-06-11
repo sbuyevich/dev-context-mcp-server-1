@@ -336,16 +336,16 @@ exit /b %exitCode%
 '@
 
 [System.IO.File]::WriteAllText(
-    (Join-Path $serverOutput "run-server.cmd"),
+    (Join-Path $serverOutput "server.cmd"),
     $serverLauncher + [System.Environment]::NewLine,
     [System.Text.Encoding]::ASCII)
 [System.IO.File]::WriteAllText(
-    (Join-Path $indexerOutput "run-indexer.cmd"),
+    (Join-Path $indexerOutput "indexer.cmd"),
     $indexerLauncher + [System.Environment]::NewLine,
     [System.Text.Encoding]::ASCII)
 
-$rootServerLauncherPath = Join-Path $distributionRoot "run-server.cmd"
-$rootIndexerLauncherPath = Join-Path $distributionRoot "run-indexer.cmd"
+$rootServerLauncherPath = Join-Path $distributionRoot "server.cmd"
+$rootIndexerLauncherPath = Join-Path $distributionRoot "indexer.cmd"
 [System.IO.File]::WriteAllText(
     $rootServerLauncherPath,
     $rootServerLauncher + [System.Environment]::NewLine,
@@ -357,10 +357,10 @@ $rootIndexerLauncherPath = Join-Path $distributionRoot "run-indexer.cmd"
 
 Assert-FileExists -Path (Join-Path $serverOutput "DevContextMcp.Server.exe")
 Assert-FileExists -Path $serverSettingsPath
-Assert-FileExists -Path (Join-Path $serverOutput "run-server.cmd")
+Assert-FileExists -Path (Join-Path $serverOutput "server.cmd")
 Assert-FileExists -Path (Join-Path $indexerOutput "DevContextMcp.Indexer.exe")
 Assert-FileExists -Path $indexerSettingsPath
-Assert-FileExists -Path (Join-Path $indexerOutput "run-indexer.cmd")
+Assert-FileExists -Path (Join-Path $indexerOutput "indexer.cmd")
 Assert-FileExists -Path $rootServerLauncherPath
 Assert-FileExists -Path $rootIndexerLauncherPath
 
@@ -386,16 +386,16 @@ $dataEntries = @(
     "data/nuget-repositories/prod/"
 )
 Assert-ZipLayout -Path $serverZip -RequiredEntries (@(
-        "run-server.cmd",
+        "server.cmd",
         "server/DevContextMcp.Server.exe",
         "server/appsettings.json",
-        "server/run-server.cmd"
+        "server/server.cmd"
     ) + $dataEntries)
 Assert-ZipLayout -Path $indexerZip -RequiredEntries (@(
-        "run-indexer.cmd",
+        "indexer.cmd",
         "indexer/DevContextMcp.Indexer.exe",
         "indexer/appsettings.json",
-        "indexer/run-indexer.cmd"
+        "indexer/indexer.cmd"
     ) + $dataEntries)
 
 Write-Host ""

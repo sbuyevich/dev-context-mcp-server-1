@@ -1,11 +1,11 @@
-using DevContextMcp.Server.Core.Diagnostics;
-using DevContextMcp.Server.Core.Retrieval.Abstractions;
+using DevContextMcp.Indexer.Core.Infrastructure;
 using DevContextMcp.Infrastructure.Diagnostics;
 using DevContextMcp.Infrastructure.Indexer.NuGet;
 using DevContextMcp.Infrastructure.Indexer.Persistence;
 using DevContextMcp.Infrastructure.Indexer.Processing;
 using DevContextMcp.Infrastructure.Server;
-using DevContextMcp.Indexer.Core.Abstractions;
+using DevContextMcp.Server.Core.Diagnostics;
+using DevContextMcp.Server.Core.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

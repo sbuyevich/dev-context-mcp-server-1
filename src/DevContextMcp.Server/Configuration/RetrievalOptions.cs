@@ -1,7 +1,7 @@
 namespace DevContextMcp.Server.Configuration;
 
 /// <summary>
-/// Limits applied to indexed documentation retrieval.
+/// Limits applied to indexed documentation 
 /// </summary>
 public sealed class RetrievalOptions
 {

@@ -1,14 +1,14 @@
-using DevContextMcp.Server.Core.Retrieval.Abstractions;
 using DevContextMcp.Server.Core.Diagnostics;
-using DevContextMcp.Server.Core.Retrieval.Services;
+using DevContextMcp.Server.Core.Services;
 using DevContextMcp.Server.Tools;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using RetrievalConfigurationProvider = DevContextMcp.Server.Core.Services.IConfigurationProvider;
 
 namespace DevContextMcp.Server.Diagnostics;
 
 internal sealed class StartupDiagnosticsHostedService(
-    IRetrievalConfigurationProvider retrievalConfigurationProvider,
+    RetrievalConfigurationProvider retrievalConfigurationProvider,
     ToolRegistrationCatalog toolCatalog,
     ILocalDependencyCheck localDependencyCheck,
     IResolveLibraryHandler resolveLibraryHandler,

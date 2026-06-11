@@ -1,10 +1,11 @@
 using DevContextMcp.Indexer;
 using DevContextMcp.Indexer.Configuration;
 using DevContextMcp.Server;
-using DevContextMcp.Server.Core.Retrieval.Abstractions;
+using DevContextMcp.Server.Core.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using RetrievalConfigurationProvider = DevContextMcp.Server.Core.Services.IConfigurationProvider;
 
 namespace DevContextMcp.UnitTests.Configuration;
 
@@ -17,7 +18,7 @@ public sealed class DatabasePathResolutionTests
         using var provider = CreateServerProvider(relativePath);
 
         var settings = provider
-            .GetRequiredService<IRetrievalConfigurationProvider>()
+            .GetRequiredService<RetrievalConfigurationProvider>()
             .GetSettings();
 
         Assert.Equal(
@@ -32,7 +33,7 @@ public sealed class DatabasePathResolutionTests
         using var provider = CreateServerProvider(absolutePath);
 
         var settings = provider
-            .GetRequiredService<IRetrievalConfigurationProvider>()
+            .GetRequiredService<RetrievalConfigurationProvider>()
             .GetSettings();
 
         Assert.Equal(Path.GetFullPath(absolutePath), settings.DatabasePath);

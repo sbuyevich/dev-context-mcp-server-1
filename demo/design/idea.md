@@ -1,1 +1,0 @@
-i want to create blazor hybrid app to use codex with devcontextmcp to help me nugets using

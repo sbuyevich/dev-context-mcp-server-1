@@ -6,12 +6,12 @@ internal sealed class UsaCityService : IUsaCityService
 {
     private static readonly ReadOnlyCollection<string> CityNames = Array.AsReadOnly(
     [
-        "Chicago",
-        "Houston",
-        "Los Angeles",
-        "New York",
-        "Philadelphia",
-        "Phoenix"
+        "chicago",
+        "houston",
+        "los angeles",
+        "new york",
+        "philadelphia",
+        "phoenix"
     ]);
 
     public IReadOnlyList<string> GetCityNames() => CityNames;

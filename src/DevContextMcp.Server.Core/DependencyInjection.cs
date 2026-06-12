@@ -1,4 +1,4 @@
-using DevContextMcp.Server.Core.Retrieval.Services;
+using DevContextMcp.Server.Core.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DevContextMcp.Server.Core;
@@ -17,7 +17,7 @@ public static class DependencyInjection
         services.AddSingleton<IVersionResolver, VersionResolver>();
         services.AddSingleton<ICitationFactory, CitationFactory>();
         services.AddSingleton<IResponseBudget, ResponseBudget>();
-        services.AddSingleton<IRetrievalLibraryResolver, RetrievalLibraryResolver>();
+        services.AddSingleton<ILibraryResolver, RetrievalLibraryResolver>();
         return services;
     }
 }

@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using DevContextMcp.Indexer.Core.Abstractions;
+using DevContextMcp.Indexer.Core.Infrastructure;
 
 namespace DevContextMcp.Infrastructure.Indexer.Processing;
 

@@ -6,7 +6,7 @@ using DevContextMcp.Server.Core.Contracts.Common;
 using DevContextMcp.Server.Core.Contracts.ListVersions;
 using DevContextMcp.Server.Core.Contracts.QueryDocs;
 using DevContextMcp.Server.Core.Contracts.ResolveLibrary;
-using DevContextMcp.Server.Core.Retrieval.Services;
+using DevContextMcp.Server.Core.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -40,10 +40,21 @@ public sealed class EnvironmentAwareRetrievalTests
         try
         {
             using var provider = CreateProvider(qa, production, databasePath);
-            var summaries = await provider.GetRequiredService<IIndexCoordinator>()
+            var result = await provider.GetRequiredService<IIndexCoordinator>()
                 .IndexAllAsync(CancellationToken.None);
+            var summaries = result.Summaries;
             Assert.Equal(2, summaries.Count);
             Assert.All(summaries, summary => Assert.Equal("succeeded", summary.Status));
+            var indexedLibrary = Assert.Single(result.IndexedLibraries);
+            Assert.Equal(FixtureNuGetPackage.PackageId, indexedLibrary.PackageId);
+            Assert.Equal(["production", "qa"], indexedLibrary.Environments
+                .Select(environment => environment.Environment));
+            Assert.Equal(
+                ["1.0.0"],
+                indexedLibrary.Environments[0].Versions);
+            Assert.Equal(
+                ["2.1.0", "2.0.0"],
+                indexedLibrary.Environments[1].Versions);
 
             var resolver = provider.GetRequiredService<IResolveLibraryHandler>();
             var all = await resolver.HandleAsync(

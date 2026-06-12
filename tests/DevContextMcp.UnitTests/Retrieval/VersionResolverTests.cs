@@ -1,5 +1,5 @@
-using DevContextMcp.Server.Core.Retrieval.Models;
-using DevContextMcp.Server.Core.Retrieval.Services;
+using DevContextMcp.Server.Core.Models;
+using DevContextMcp.Server.Core.Services;
 
 namespace DevContextMcp.UnitTests.Retrieval;
 

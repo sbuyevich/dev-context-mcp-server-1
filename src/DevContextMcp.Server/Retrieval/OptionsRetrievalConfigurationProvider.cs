@@ -1,12 +1,12 @@
-using DevContextMcp.Server.Core.Retrieval.Abstractions;
-using DevContextMcp.Server.Core.Retrieval.Models;
+using DevContextMcp.Server.Core.Models;
 using DevContextMcp.Server.Configuration;
 using Microsoft.Extensions.Options;
+using RetrievalConfigurationProvider = DevContextMcp.Server.Core.Services.IConfigurationProvider;
 
 namespace DevContextMcp.Server.Retrieval;
 
 internal sealed class OptionsRetrievalConfigurationProvider(
-    IOptions<DevContextMcpOptions> options) : IRetrievalConfigurationProvider
+    IOptions<DevContextMcpOptions> options) : RetrievalConfigurationProvider
 {
     public RetrievalSettings GetSettings()
     {

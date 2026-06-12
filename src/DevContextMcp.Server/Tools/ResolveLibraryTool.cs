@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.Text.Json;
-using DevContextMcp.Server.Core.Retrieval.Services;
+using DevContextMcp.Server.Core.Services;
 using DevContextMcp.Server.Core.Contracts.ResolveLibrary;
 using ModelContextProtocol.Server;
 

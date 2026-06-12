@@ -140,6 +140,42 @@ public sealed class IndexerOptionsValidatorTests
     }
 
     [Fact]
+    public void DeletePackageRequiresOnlyEnvironmentAndPackageId()
+    {
+        using var folder = PackageFolder.Create(
+            ("Delete.json",
+                """
+                {
+                  "Delete": true,
+                  "Environment": "qa",
+                  "PackageId": "Company.Package",
+                  "MaxVersionsPerPackage": 0
+                }
+                """));
+
+        var result = Validate(new IndexerOptions
+        {
+            NuGetSourcesPath = folder.Path,
+            Environments = [Feed("qa")]
+        });
+        var package = Assert.Single(new NuGetPackageOptionsLoader().Load(folder.Path));
+
+        Assert.Equal(ValidateOptionsResult.Success, result);
+        Assert.True(package.Delete);
+    }
+
+    [Fact]
+    public void NormalPackageDefaultsDeleteToFalse()
+    {
+        using var folder = PackageFolder.Create(
+            ("Package.json", Package("qa", "Company.Package")));
+
+        var package = Assert.Single(new NuGetPackageOptionsLoader().Load(folder.Path));
+
+        Assert.False(package.Delete);
+    }
+
+    [Fact]
     public void LoaderResolvesRelativePathsAndCachesFilenameOrderedFiles()
     {
         var name = $"nuget-options-{Guid.NewGuid():N}";

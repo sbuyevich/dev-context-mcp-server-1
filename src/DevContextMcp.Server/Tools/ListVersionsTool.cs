@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using DevContextMcp.Server.Core.Retrieval.Services;
+using DevContextMcp.Server.Core.Services;
 using DevContextMcp.Server.Core.Contracts.ListVersions;
 using ModelContextProtocol.Server;
 

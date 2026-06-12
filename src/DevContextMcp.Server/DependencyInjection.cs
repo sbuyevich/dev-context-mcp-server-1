@@ -1,15 +1,12 @@
-using DevContextMcp.Server.Core;
-using DevContextMcp.Server.Core.Retrieval.Abstractions;
-using DevContextMcp.Server.Configuration;
-using DevContextMcp.Server.Diagnostics;
-using DevContextMcp.Server.Retrieval;
-using DevContextMcp.Server.Resources;
-using DevContextMcp.Server.Tools;
 using DevContextMcp.Infrastructure;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using DevContextMcp.Server.Configuration;
+using DevContextMcp.Server.Core;
+using DevContextMcp.Server.Core.Services;
+using DevContextMcp.Server.Diagnostics;
+using DevContextMcp.Server.Resources;
+using DevContextMcp.Server.Retrieval;
+using DevContextMcp.Server.Tools;
 using Microsoft.Extensions.Options;
-using ModelContextProtocol.Server;
 
 namespace DevContextMcp.Server;
 
@@ -34,7 +31,7 @@ public static class DependencyInjection
 
         services.AddApplication();
         services.AddRetrievalInfrastructure();
-        services.AddSingleton<IRetrievalConfigurationProvider>(provider =>
+        services.AddSingleton<Core.Services.IConfigurationProvider>(provider =>
             new OptionsRetrievalConfigurationProvider(
                 provider.GetRequiredService<IOptions<DevContextMcpOptions>>()));
         services.AddSingleton<ToolRegistrationCatalog>();

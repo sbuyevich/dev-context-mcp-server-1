@@ -4,6 +4,7 @@
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="NuGet.Packaging" />
     <PackageReference Include="NuGet.Protocol" />
+    <PackageReference Include="NuGet.Versioning" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevContextMcp.Server.Core\DevContextMcp.Server.Core.csproj" />

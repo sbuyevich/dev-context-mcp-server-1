@@ -21,13 +21,20 @@ internal sealed class IndexerRunner(
 
         try
         {
-            var summaries = await indexCoordinator.IndexAllAsync(cancellationToken);
-            foreach (var summary in summaries)
+            var result = await indexCoordinator.IndexAllAsync(cancellationToken);
+            var changedSummaries = result.Summaries.Where(summary =>
+                summary.Added.Count > 0 ||
+                summary.Updated.Count > 0 ||
+                summary.Deleted.Count > 0);
+            
+            foreach (var summary in changedSummaries)
             {
                 LogSummary(summary);
             }
 
-            return summaries.All(summary =>
+            LogIndexedLibraries(result.IndexedLibraries);
+
+            return result.Summaries.All(summary =>
                 summary.Status.Equals("succeeded", StringComparison.Ordinal));
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -49,16 +56,55 @@ internal sealed class IndexerRunner(
             "partial_success" => LogLevel.Warning,
             _ => LogLevel.Error
         };
+        var report = FormatSummary(summary);
+        logger.Log(logLevel, "{IndexerReport}", report);
+    }
 
-        logger.Log(
-            logLevel,
-            "NuGet index run completed.\r\nSource: {SourceName}\r\nStatus: {Status}\r\nDiscovered: {Discovered}\r\nIndexed: {Indexed}\r\nChanged: {Changed}\r\nUnchanged: {Unchanged}\r\nErrors: {ErrorCount}",
-            summary.SourceName,
-            summary.Status,
-            summary.Discovered,
-            summary.Indexed,
-            summary.Changed,
-            summary.Unchanged,
-            summary.Errors.Count);
+    private static string FormatSummary(IndexRunSummary summary) =>
+        $@"
+        Environment: {summary.SourceName}
+        Status: {summary.Status}
+        NuGets
+            Total: {summary.Discovered}
+            Indexed: {summary.Indexed}
+            Errors: {summary.Errors.Count}
+            Added ({summary.Added.Count}): {FormatPackages(summary.Added)}
+            Updated ({summary.Updated.Count}): {FormatPackages(summary.Updated)}
+            Deleted ({summary.Deleted.Count}):{FormatPackages(summary.Deleted)}
+        ";
+
+    private static string FormatPackages(
+        IReadOnlyList<PackageIdentityKey> packages) =>
+        packages.Count == 0
+            ? ""
+            : string.Join(
+                "; ",
+                packages
+                    .OrderBy(package => package.PackageId, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(package => package.PackageId, StringComparer.Ordinal)
+                    .ThenBy(package => package.Version, StringComparer.OrdinalIgnoreCase)
+                    .ThenBy(package => package.Version, StringComparer.Ordinal)
+                    .Select(package => $"        {package.PackageId} {package.Version}"));
+     
+
+    private void LogIndexedLibraries(IReadOnlyList<IndexedLibrary> libraries)
+    {
+        if (libraries.Count == 0)
+        {
+            return;
+        }
+
+        var blocks = libraries.Select(library =>
+            $"{library.PackageId} versions ({library.Environments.Sum(environment => environment.Versions.Count)})" +
+            Environment.NewLine +
+            string.Join(
+                Environment.NewLine,
+                library.Environments.Select(environment =>
+                    $"    {environment.Environment} ({environment.Versions.Count}): " +
+                    string.Join(", ", environment.Versions))));
+
+        var report = $"{Environment.NewLine}Indexed libraries{Environment.NewLine}{Environment.NewLine}" +
+            string.Join($"{Environment.NewLine}{Environment.NewLine}", blocks);
+        logger.LogInformation("{IndexedLibraryReport}", report += $"{Environment.NewLine}-----------------------------------------------------------------------------");
     }
 }

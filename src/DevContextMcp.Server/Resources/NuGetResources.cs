@@ -1,15 +1,16 @@
 using System.ComponentModel;
-using DevContextMcp.Server.Core.Retrieval.Abstractions;
-using DevContextMcp.Server.Core.Retrieval.Services;
+using DevContextMcp.Server.Core.Infrastructure;
+using DevContextMcp.Server.Core.Services;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
+using RetrievalConfigurationProvider = DevContextMcp.Server.Core.Services.IConfigurationProvider;
 
 namespace DevContextMcp.Server.Resources;
 
 [McpServerResourceType]
 public sealed class NuGetResources(
-    IRetrievalConfigurationProvider configurationProvider,
+    RetrievalConfigurationProvider configurationProvider,
     INuGetReadStore store,
     ICitationFactory citationFactory)
 {

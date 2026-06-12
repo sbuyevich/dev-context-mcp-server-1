@@ -19,6 +19,15 @@ public sealed class IndexerProcessTests
 
             Assert.Equal(0, result.ExitCode);
             Assert.True(File.Exists(databasePath), result.Logs);
+            Assert.Contains("Indexed libraries", result.Logs, StringComparison.Ordinal);
+            Assert.Contains(
+                $"{FixtureNuGetPackage.PackageId} versions (1)",
+                result.Logs,
+                StringComparison.Ordinal);
+            Assert.Contains(
+                $"test (1): {FixtureNuGetPackage.Version}",
+                result.Logs,
+                StringComparison.Ordinal);
 
             await using var connection = new SqliteConnection(
                 $"Data Source={databasePath};Pooling=False");
@@ -49,6 +58,8 @@ public sealed class IndexerProcessTests
 
             Assert.Equal(1, result.ExitCode);
             Assert.Contains("Status: failed", result.Logs, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Indexed libraries", result.Logs, StringComparison.Ordinal);
+            Assert.Contains("(none)", result.Logs, StringComparison.Ordinal);
         }
         finally
         {

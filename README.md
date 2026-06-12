@@ -10,7 +10,7 @@ executing package code.
 
 ## Prerequisites
 
-- .NET SDK 10.0.204 or a compatible 10.0 patch selected by `global.json`.
+- The .NET SDK selected by `global.json`.
 
 ## Build and test
 
@@ -19,6 +19,26 @@ dotnet restore .\DevContextMcp.slnx
 dotnet build .\DevContextMcp.slnx --no-restore
 dotnet test .\DevContextMcp.slnx --no-build --no-restore
 ```
+
+## Create Windows distributions
+
+Run the distribution script from the repository root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dist.ps1
+```
+
+It publishes self-contained `win-x64` builds under
+`artifacts\dist\win-x64`, creates separate `server` and `indexer` folders, and
+produces one ZIP archive for each application. Extract both ZIPs into the same
+parent directory to share the generated `data` layout. Run `run-server.cmd`
+and `run-indexer.cmd` from the distribution root; the launchers set the working
+directory required by relative local-feed paths.
+
+If the SDK selected by `global.json` is unavailable, the script downloads the
+official Microsoft installer and caches that SDK under `artifacts\tools\dotnet`.
+This requires internet access on the first run but does not require
+administrator access or modify the machine-wide .NET installation.
 
 ## Run the Indexer CLI
 
@@ -203,6 +223,19 @@ Create one top-level JSON file per package in the external
 }
 ```
 
+To remove that package from the environment, keep a minimal tombstone file:
+
+```json
+{
+  "Delete": true,
+  "Environment": "production",
+  "PackageId": "Company.Foundation"
+}
+```
+
+The package remains deleted until the tombstone is removed or changed back to
+`Delete: false`.
+
 ### Configuration loading and overrides
 
 The Host and Indexer CLI load their own `appsettings.json` from the executable
@@ -261,6 +294,10 @@ Indexer CLI after changing its `appsettings.json` or package files.
 | `Environments` | NuGet feeds or local package folders to index. Each entry represents one uniquely named environment. The collection may be empty; the Indexer CLI then succeeds without doing work. |
 | `Indexing` | Download, archive-safety, and document-processing limits described below. |
 
+The Server and Indexer use Serilog for console and daily rolling file logs.
+Files are written to `data/logs/server-YYYYMMDD.log` and
+`data/logs/indexer-YYYYMMDD.log`, retain 14 files, and roll at 10 MB.
+
 ### NuGet environment values
 
 | Setting | Meaning and rules |
@@ -275,13 +312,15 @@ Indexer CLI after changing its `appsettings.json` or package files.
 | --- | --- |
 | `Environment` | Environment whose package policy is applied to the feed with the matching `Name`. It must reference a configured environment name. |
 | `PackageId` | Exact package ID to index. It is required and must be unique case-insensitively within its environment. |
+| `Delete` | When `true`, removes every indexed version of the package from this environment without contacting the feed. Delete tombstones require only `Environment` and `PackageId`. The default is `false`. |
 | `IncludePrerelease` | When `true`, discovery and metadata selection may include prerelease versions. Retrieval still requires its request-level `IncludePrerelease` flag before selecting a prerelease by fallback or recommendation. |
 | `IncludeUnlisted` | When `true`, metadata selection may include unlisted versions. |
 | `MaxVersionsPerPackage` | Maximum newest versions retained for each package after prerelease and unlisted filters. It must be positive. There is no unlimited value; use a sufficiently large number when all available versions are required. Lowering it prunes versions outside the retained set on the next successful feed publication. |
 
 Each feed is indexed and published once with all package files whose
-`Environment` matches its `Name`. A feed with no matching files is skipped without pruning existing
-data.
+`Environment` matches its `Name`. Delete tombstones are applied in the same
+transaction but are not discovered or downloaded. A feed with no matching
+files is skipped without pruning existing data.
 
 ### Indexing values
 

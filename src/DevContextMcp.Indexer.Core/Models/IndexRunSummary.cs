@@ -9,4 +9,7 @@ public sealed record IndexRunSummary(
     int Indexed,
     int Changed,
     int Unchanged,
+    IReadOnlyList<PackageIdentityKey> Added,
+    IReadOnlyList<PackageIdentityKey> Updated,
+    IReadOnlyList<PackageIdentityKey> Deleted,
     IReadOnlyList<IndexRunError> Errors);

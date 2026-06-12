@@ -1,4 +1,4 @@
-using DevContextMcp.Indexer.Core.Abstractions;
+using DevContextMcp.Indexer.Core.Infrastructure;
 using DevContextMcp.Indexer.Core.Models;
 
 namespace DevContextMcp.Indexer.Core.Services;
@@ -9,7 +9,7 @@ internal sealed class IndexCoordinator(
     IPackageProcessor packageProcessor,
     IIndexStore indexStore) : IIndexCoordinator
 {
-    public async Task<IReadOnlyList<IndexRunSummary>> IndexAllAsync(
+    public async Task<IndexRunResult> IndexAllAsync(
         CancellationToken cancellationToken)
     {
         var settings = configurationProvider.GetSettings();
@@ -21,7 +21,11 @@ internal sealed class IndexCoordinator(
             summaries.Add(await IndexSourceAsync(settings, source, cancellationToken));
         }
 
-        return summaries;
+        var indexedLibraries = await indexStore.GetIndexedLibrariesAsync(
+            settings.DatabasePath,
+            cancellationToken);
+
+        return new(summaries, indexedLibraries);
     }
 
     private async Task<IndexRunSummary> IndexSourceAsync(
@@ -30,11 +34,14 @@ internal sealed class IndexCoordinator(
         CancellationToken cancellationToken)
     {
         var startedAt = DateTimeOffset.UtcNow;
-        IReadOnlyList<PackageVersionCandidate> candidates;
+        IReadOnlyList<PackageVersionCandidate> candidates = [];
 
         try
         {
-            candidates = await sourceClient.DiscoverAsync(source, cancellationToken);
+            if (source.Packages.Count > 0)
+            {
+                candidates = await sourceClient.DiscoverAsync(source, cancellationToken);
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -46,7 +53,7 @@ internal sealed class IndexCoordinator(
             var completedAt = DateTimeOffset.UtcNow;
             await indexStore.PublishSourceAsync(
                 settings.DatabasePath,
-                source,
+                source with { DeletedPackageIds = [] },
                 startedAt,
                 [],
                 [],
@@ -55,15 +62,18 @@ internal sealed class IndexCoordinator(
                 cancellationToken);
 
             return new(
-                source.Name,
-                "failed",
-                startedAt,
-                completedAt,
-                0,
-                0,
-                0,
-                0,
-                [discoveryError]);
+                SourceName: source.Name,
+                Status: "failed",
+                StartedAt: startedAt,
+                CompletedAt: completedAt,
+                Discovered: 0,
+                Indexed: 0,
+                Changed: 0,
+                Unchanged: 0,
+                Added: [],
+                Updated: [],
+                Deleted: [],
+                Errors: [discoveryError]);
         }
 
         var indexedPackages = new List<PackageIndexData>(candidates.Count);
@@ -111,7 +121,7 @@ internal sealed class IndexCoordinator(
             indexedPackages,
             retained,
             errors,
-            true,
+            source.Packages.Count > 0,
             cancellationToken);
 
         var status = indexedPackages.Count == 0 && errors.Count > 0
@@ -119,14 +129,20 @@ internal sealed class IndexCoordinator(
             : errors.Count > 0 ? "partial_success" : "succeeded";
 
         return new(
-            source.Name,
-            status,
-            startedAt,
-            DateTimeOffset.UtcNow,
-            candidates.Count,
-            indexedPackages.Count,
-            publish.Changed,
-            publish.Unchanged,
-            errors);
+            SourceName: source.Name,
+            Status: status,
+            StartedAt: startedAt,
+            CompletedAt: DateTimeOffset.UtcNow,
+            Discovered: candidates
+                .Select(candidate => candidate.PackageId)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count(),
+            Indexed: indexedPackages.Count,
+            Changed: publish.Changed,
+            Unchanged: publish.Unchanged,
+            Added: publish.Added,
+            Updated: publish.Updated,
+            Deleted: publish.Deleted,
+            Errors: errors);
     }
 }

@@ -126,9 +126,7 @@ internal sealed class IndexCoordinator(
                 source with { DeletedPackageIds = [] },
                 startedAt,
                 [],
-                [],
                 [discoveryError],
-                false,
                 cancellationToken);
 
             return new(
@@ -148,9 +146,6 @@ internal sealed class IndexCoordinator(
 
         var indexedPackages = new List<PackageIndexData>(candidates.Count);
         var errors = new List<IndexRunError>();
-        var retained = candidates
-            .Select(candidate => new PackageIdentityKey(candidate.PackageId, candidate.Version))
-            .ToArray();
 
         foreach (var candidate in candidates)
         {
@@ -189,9 +184,7 @@ internal sealed class IndexCoordinator(
             source,
             startedAt,
             indexedPackages,
-            retained,
             errors,
-            source.Packages.Count > 0,
             cancellationToken);
 
         var status = indexedPackages.Count == 0 && errors.Count > 0

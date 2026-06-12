@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>OpenMeteo.Api.Client</PackageId>
+    <AssemblyName>OpenMeteo.Api.Client</AssemblyName>
+    <RootNamespace>OpenMeteo.Api.Client</RootNamespace>
+    <Version>1.0.0</Version>
+    <Authors>DevContextMcp Demo</Authors>
+    <Description>Generated .NET client for the Open-Meteo Geocoding API with HttpClientFactory registration.</Description>
+    <PackageTags>open-meteo;geocoding;httpclient;openapi;nswag</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Deterministic>true</Deterministic>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Newtonsoft.Json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\OpenAPI\Generated\OpenMeteoClient.cs" Link="Generated\OpenMeteoClient.cs" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

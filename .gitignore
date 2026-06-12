@@ -32,10 +32,6 @@ artifacts/
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
-# NuGet Packages
-*.nupkg
-# NuGet Symbol Packages
-*.snupkg
 
 # dotenv environment variables file
 .env

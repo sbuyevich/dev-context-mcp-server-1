@@ -107,7 +107,10 @@ or command-line arguments.
 
 Every package file applies to the feed whose name matches its environment.
 Each feed is discovered and atomically published once. A feed with no matching
-package files is skipped without pruning existing data.
+package files is skipped without deleting existing data. Indexed packages and
+versions are deleted only by a matching package file with `Delete` set to
+`true`; removing package configuration, removing a package from the feed, or
+reducing its version limit does not delete previously indexed data.
 
 ### 7.2 Package processing
 
@@ -264,7 +267,8 @@ Package file `nuget-sources/Company.Customer.Client.json`:
 Setting `Delete` to `true` turns the file into a persistent tombstone that
 removes every indexed version of the package from the matching environment
 without contacting the feed. Tombstones require only `Environment` and
-`PackageId`.
+`PackageId`. This tombstone is the only mechanism that removes indexed NuGet
+packages or versions.
 
 ## 14. Performance Targets
 

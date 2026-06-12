@@ -1,0 +1,134 @@
+openapi: 3.0.3
+info:
+  title: Open-Meteo Geocoding API Client
+  version: 1.0.0
+  description: Unofficial OpenAPI client for the Open-Meteo Geocoding API.
+
+servers:
+  - url: https://geocoding-api.open-meteo.com
+
+paths:
+  /v1/search:
+    get:
+      operationId: searchLocations
+      summary: Search locations by name
+      description: Search for cities and places by name and return coordinates, country, timezone, elevation, and related location data.
+      parameters:
+        - name: name
+          in: query
+          required: true
+          description: City or place name to search.
+          schema:
+            type: string
+          example: Chicago
+
+        - name: count
+          in: query
+          required: false
+          description: Maximum number of search results.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          example: 5
+
+        - name: language
+          in: query
+          required: false
+          description: Response language.
+          schema:
+            type: string
+            default: en
+          example: en
+
+        - name: format
+          in: query
+          required: false
+          description: Response format.
+          schema:
+            type: string
+            enum:
+              - json
+            default: json
+          example: json
+
+      responses:
+        "200":
+          description: List of matching locations.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeocodingResponse"
+
+components:
+  schemas:
+    GeocodingResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/LocationResult"
+        generationtime_ms:
+          type: number
+          format: double
+
+    LocationResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        elevation:
+          type: number
+          format: double
+        feature_code:
+          type: string
+        country_code:
+          type: string
+        admin1_id:
+          type: integer
+          nullable: true
+        admin2_id:
+          type: integer
+          nullable: true
+        admin3_id:
+          type: integer
+          nullable: true
+        admin4_id:
+          type: integer
+          nullable: true
+        timezone:
+          type: string
+        population:
+          type: integer
+          nullable: true
+        postcodes:
+          type: array
+          nullable: true
+          items:
+            type: string
+        country_id:
+          type: integer
+        country:
+          type: string
+        admin1:
+          type: string
+          nullable: true
+        admin2:
+          type: string
+          nullable: true
+        admin3:
+          type: string
+          nullable: true
+        admin4:
+          type: string
+          nullable: true

@@ -1,0 +1,6 @@
+{
+  "Delete": true,
+  "Environment": "qa",
+  "PackageId": "Demo.Countries",
+  "MaxVersionsPerPackage": 10
+}

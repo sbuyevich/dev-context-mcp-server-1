@@ -15,9 +15,7 @@ public interface IIndexStore
         IndexSourceDefinition source,
         DateTimeOffset startedAt,
         IReadOnlyList<PackageIndexData> packages,
-        IReadOnlyCollection<PackageIdentityKey> retainedPackages,
         IReadOnlyList<IndexRunError> errors,
-        bool pruneMissing,
         CancellationToken cancellationToken);
 
     Task<IndexPublishResult> PublishDocumentationAsync(

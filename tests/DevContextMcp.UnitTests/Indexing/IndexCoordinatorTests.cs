@@ -46,9 +46,7 @@ public sealed class IndexCoordinatorTests
                 It.IsAny<IndexSourceDefinition>(),
                 It.IsAny<DateTimeOffset>(),
                 It.IsAny<IReadOnlyList<PackageIndexData>>(),
-                It.IsAny<IReadOnlyCollection<PackageIdentityKey>>(),
                 It.IsAny<IReadOnlyList<IndexRunError>>(),
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(EmptyPublishResult());
 
@@ -80,12 +78,9 @@ public sealed class IndexCoordinatorTests
                 It.IsAny<DateTimeOffset>(),
                 It.Is<IReadOnlyList<PackageIndexData>>(packages =>
                     packages.Count == 0),
-                It.Is<IReadOnlyCollection<PackageIdentityKey>>(retained =>
-                    retained.Count == 0),
                 It.Is<IReadOnlyList<IndexRunError>>(errors =>
                     errors.Count == 1
                     && errors[0].Code == "source_discovery_failed"),
-                false,
                 It.IsAny<CancellationToken>()),
             Times.Once);
         _indexStore.Verify(
@@ -147,9 +142,7 @@ public sealed class IndexCoordinatorTests
                 It.IsAny<IndexSourceDefinition>(),
                 It.IsAny<DateTimeOffset>(),
                 It.IsAny<IReadOnlyList<PackageIndexData>>(),
-                It.IsAny<IReadOnlyCollection<PackageIdentityKey>>(),
                 It.IsAny<IReadOnlyList<IndexRunError>>(),
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(EmptyPublishResult());
 
@@ -187,12 +180,9 @@ public sealed class IndexCoordinatorTests
                 It.IsAny<DateTimeOffset>(),
                 It.Is<IReadOnlyList<PackageIndexData>>(packages =>
                     packages.Count == 0),
-                It.Is<IReadOnlyCollection<PackageIdentityKey>>(retained =>
-                    retained.Count == candidates.Count),
                 It.Is<IReadOnlyList<IndexRunError>>(errors =>
                     errors.Count == candidates.Count
                     && errors.All(error => error.Code == "package_index_failed")),
-                true,
                 It.IsAny<CancellationToken>()),
             Times.Once);
         _indexStore.Verify(

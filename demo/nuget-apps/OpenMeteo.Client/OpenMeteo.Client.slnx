@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OpenMeteo.Api.Client/OpenMeteo.Api.Client.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OpenMeteo.Api.Client.Tests/OpenMeteo.Api.Client.Tests.csproj" />
+  </Folder>
+</Solution>

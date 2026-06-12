@@ -33,7 +33,14 @@ public sealed class IndexerProcessTests
                 $"Data Source={databasePath};Pooling=False");
             await connection.OpenAsync();
             await using var command = connection.CreateCommand();
-            command.CommandText = "SELECT COUNT(*) FROM library_versions;";
+            command.CommandText =
+                """
+                SELECT COUNT(*)
+                FROM library_versions
+                INNER JOIN libraries ON libraries.id = library_versions.library_id
+                WHERE libraries.package_id = $packageId COLLATE NOCASE;
+                """;
+            command.Parameters.AddWithValue("$packageId", FixtureNuGetPackage.PackageId);
 
             Assert.Equal(1L, Convert.ToInt64(await command.ExecuteScalarAsync()));
         }

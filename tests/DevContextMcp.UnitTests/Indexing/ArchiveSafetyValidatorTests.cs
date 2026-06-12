@@ -6,56 +6,88 @@ namespace DevContextMcp.UnitTests.Indexing;
 
 public sealed class ArchiveSafetyValidatorTests
 {
-    [Fact]
-    public void PathTraversalEntryIsRejected()
+    private readonly Func<
+        ZipArchive,
+        PackageProcessingLimits,
+        IReadOnlyList<ZipArchiveEntry>> _target;
+
+    public ArchiveSafetyValidatorTests()
     {
-        using var memory = new MemoryStream();
-        using (var archive = new ZipArchive(memory, ZipArchiveMode.Create, leaveOpen: true))
+        _target = ArchiveSafetyValidator.Validate;
+    }
+
+    // Purpose: rejects archive entries that attempt to escape the package root
+    [Fact]
+    public void Validate_PathTraversalEntry_ThrowsInvalidDataException()
+    {
+        // arrange
+        using var archive = CreateArchiveWithContent("../outside.txt", "unsafe");
+
+        // act
+        var actual = Assert.Throws<InvalidDataException>(() =>
+            _target(archive, CreateLimits()));
+
+        // assert
+        Assert.Contains("escape", actual.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Purpose: rejects archives whose entry count exceeds the configured limit
+    [Fact]
+    public void Validate_EntryCountExceedsLimit_ThrowsInvalidDataException()
+    {
+        // arrange
+        using var archive = CreateArchiveEntries("one.txt", "two.txt");
+        var limits = CreateLimits() with { MaxArchiveEntries = 1 };
+
+        // act
+        var actual = Assert.Throws<InvalidDataException>(() =>
+            _target(archive, limits));
+
+        // assert
+        Assert.Contains(
+            "configured limit",
+            actual.Message,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static ZipArchive CreateArchiveEntries(params string[] entryNames)
+    {
+        var memory = new MemoryStream();
+        using (var archive = new ZipArchive(
+                   memory,
+                   ZipArchiveMode.Create,
+                   leaveOpen: true))
         {
-            var entry = archive.CreateEntry("../outside.txt");
+            foreach (var entryName in entryNames)
+            {
+                archive.CreateEntry(entryName);
+            }
+        }
+
+        memory.Position = 0;
+        return new ZipArchive(memory, ZipArchiveMode.Read);
+    }
+
+    private static ZipArchive CreateArchiveWithContent(
+        string entryName,
+        string content)
+    {
+        var memory = new MemoryStream();
+        using (var archive = new ZipArchive(
+                   memory,
+                   ZipArchiveMode.Create,
+                   leaveOpen: true))
+        {
+            var entry = archive.CreateEntry(entryName);
             using var writer = new StreamWriter(entry.Open());
-            writer.Write("unsafe");
+            writer.Write(content);
         }
 
         memory.Position = 0;
-        using var readArchive = new ZipArchive(memory, ZipArchiveMode.Read);
-
-        var exception = Assert.Throws<InvalidDataException>(() =>
-            ArchiveSafetyValidator.Validate(readArchive, Limits()));
-
-        Assert.Contains("escape", exception.Message, StringComparison.OrdinalIgnoreCase);
+        return new ZipArchive(memory, ZipArchiveMode.Read);
     }
 
-    [Fact]
-    public void EntryCountLimitIsEnforced()
-    {
-        using var memory = new MemoryStream();
-        using (var archive = new ZipArchive(memory, ZipArchiveMode.Create, leaveOpen: true))
-        {
-            archive.CreateEntry("one.txt");
-            archive.CreateEntry("two.txt");
-        }
-
-        memory.Position = 0;
-        using var readArchive = new ZipArchive(memory, ZipArchiveMode.Read);
-        var limits = Limits() with { MaxArchiveEntries = 1 };
-
-        Assert.Throws<InvalidDataException>(() =>
-            ArchiveSafetyValidator.Validate(readArchive, limits));
-    }
-
-    [Fact]
-    public void PackageDownloadSizeLimitIsEnforced()
-    {
-        using var inner = new MemoryStream();
-        using var bounded = new LengthLimitedStream(inner, 4);
-
-        bounded.Write([1, 2, 3, 4]);
-
-        Assert.Throws<InvalidDataException>(() => bounded.WriteByte(5));
-    }
-
-    private static PackageProcessingLimits Limits() => new(
+    private static PackageProcessingLimits CreateLimits() => new(
         1_000_000,
         100_000,
         100,
@@ -63,4 +95,39 @@ public sealed class ArchiveSafetyValidatorTests
         1_000,
         4_000,
         TimeSpan.FromSeconds(10));
+}
+
+public sealed class LengthLimitedStreamTests : IDisposable
+{
+    private readonly MemoryStream _inner;
+    private readonly LengthLimitedStream _target;
+
+    public LengthLimitedStreamTests()
+    {
+        _inner = new MemoryStream();
+        _target = new LengthLimitedStream(_inner, 4);
+    }
+
+    // Purpose: rejects a write that would exceed the configured maximum length
+    [Fact]
+    public void WriteByte_WriteExceedsMaximumLength_ThrowsInvalidDataException()
+    {
+        // arrange
+        _target.Write([1, 2, 3, 4]);
+
+        // act
+        var actual = Assert.Throws<InvalidDataException>(() =>
+            _target.WriteByte(5));
+
+        // assert
+        Assert.Contains(
+            "configured limit",
+            actual.Message,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        _target.Dispose();
+    }
 }

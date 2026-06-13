@@ -98,16 +98,19 @@ NuGet feeds are configured with:
 - NuGet v3 service index URL or approved local package folder.
 - Maximum package count.
 
-Package selection is externally provisioned as one top-level JSON file per
-package. Each file contains an environment, exact package ID, prerelease and
-unlisted policies, and a version limit. Relative package-folder paths resolve
-from the Indexer CLI executable directory. Files are loaded once at startup in
-filename order and cannot be overridden field-by-field by environment variables
-or command-line arguments.
+Package selection is externally provisioned as one JSON file per package
+anywhere beneath the configured folder. Each file contains an environment,
+exact package ID, prerelease and unlisted policies, and a version limit.
+Relative package-folder paths resolve from the Indexer CLI executable directory.
+Files are loaded recursively once at startup in full-path order and cannot be
+overridden field-by-field by environment variables or command-line arguments.
 
 Every package file applies to the feed whose name matches its environment.
 Each feed is discovered and atomically published once. A feed with no matching
-package files is skipped without pruning existing data.
+package files is skipped without deleting existing data. Indexed packages and
+versions are deleted only by a matching package file with `Delete` set to
+`true`; removing package configuration, removing a package from the feed, or
+reducing its version limit does not delete previously indexed data.
 
 ### 7.2 Package processing
 
@@ -233,7 +236,7 @@ Indexer CLI:
 {
   "DevContextMcp": {
     "DatabasePath": "data/docs.db",
-    "NuGetSourcesPath": "nuget-sources",
+    "NugetsPath": "nugets",
     "Environments": [
       {
         "Name": "production",
@@ -249,7 +252,7 @@ Indexer CLI:
 }
 ```
 
-Package file `nuget-sources/Company.Customer.Client.json`:
+Package file `nugets/production/Company.Customer.Client.json`:
 
 ```json
 {
@@ -264,7 +267,8 @@ Package file `nuget-sources/Company.Customer.Client.json`:
 Setting `Delete` to `true` turns the file into a persistent tombstone that
 removes every indexed version of the package from the matching environment
 without contacting the feed. Tombstones require only `Environment` and
-`PackageId`.
+`PackageId`. This tombstone is the only mechanism that removes indexed NuGet
+packages or versions.
 
 ## 14. Performance Targets
 

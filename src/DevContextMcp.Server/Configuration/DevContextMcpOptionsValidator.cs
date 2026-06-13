@@ -19,6 +19,7 @@ public sealed partial class DevContextMcpOptionsValidator : IValidateOptions<Dev
             "DevContextMcp:DatabasePath",
             failures);
         ValidateRetrieval(options.Retrieval, failures);
+        ValidateToolLogging(options.ToolLogging, failures);
         ValidateRecommendedVersions(options.RecommendedVersions, failures);
 
         return failures.Count == 0
@@ -101,6 +102,17 @@ public sealed partial class DevContextMcpOptionsValidator : IValidateOptions<Dev
         if (options.AmbiguousSymbolLimit <= 0)
         {
             failures.Add("DevContextMcp:Retrieval:AmbiguousSymbolLimit must be positive.");
+        }
+    }
+
+    private static void ValidateToolLogging(
+        ToolLoggingOptions options,
+        List<string> failures)
+    {
+        if (options.MaxPayloadBytes <= 0)
+        {
+            failures.Add(
+                "DevContextMcp:ToolLogging:MaxPayloadBytes must be positive.");
         }
     }
 

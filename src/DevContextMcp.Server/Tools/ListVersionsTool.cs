@@ -6,7 +6,9 @@ using ModelContextProtocol.Server;
 namespace DevContextMcp.Server.Tools;
 
 [McpServerToolType]
-public sealed class ListVersionsTool(IListVersionsHandler handler)
+internal sealed class ListVersionsTool(
+    IListVersionsHandler handler,
+    ToolInvocationLogger invocationLogger)
 {
     [McpServerTool(
         Name = "list_versions",
@@ -18,8 +20,12 @@ public sealed class ListVersionsTool(IListVersionsHandler handler)
         [Description("Whether prerelease package versions should be included.")] bool includePrerelease = false,
         CancellationToken cancellationToken = default)
     {
-        return handler.HandleAsync(
-            new ListVersionsRequest(libraryId, includePrerelease),
+        var request = new ListVersionsRequest(libraryId, includePrerelease);
+
+        return invocationLogger.InvokeAsync(
+            "list_versions",
+            request,
+            token => handler.HandleAsync(request, token),
             cancellationToken);
     }
 }

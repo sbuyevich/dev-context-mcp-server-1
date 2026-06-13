@@ -7,7 +7,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using ModelContextProtocol.Server;
 using Serilog;
-using Serilog.Events;
 
 var bootstrapConfiguration = new ConfigurationManager();
 bootstrapConfiguration.SetBasePath(AppContext.BaseDirectory);
@@ -36,7 +35,7 @@ static async Task RunStdioAsync(string[] args)
             ContentRootPath = AppContext.BaseDirectory
         });
 
-    ConfigureLogging(builder.Services);
+    ConfigureLogging(builder.Services, builder.Configuration);
     builder.Services.AddDevContextMcpCore(builder.Configuration);
     builder.Services.AddMcpServer()
         .WithStdioServerTransport()
@@ -54,7 +53,7 @@ static async Task RunHttpAsync(string[] args)
             ContentRootPath = AppContext.BaseDirectory
         });
 
-    ConfigureLogging(builder.Services);
+    ConfigureLogging(builder.Services, builder.Configuration);
     builder.Services.AddDevContextMcpCore(builder.Configuration);
     builder.Services.AddMcpServer()
         .WithHttpTransport(options => options.Stateless = true)
@@ -68,30 +67,46 @@ static async Task RunHttpAsync(string[] args)
     await app.RunAsync(options.Http.Url);
 }
 
-static void ConfigureLogging(IServiceCollection services)
+static void ConfigureLogging(
+    IServiceCollection services,
+    IConfiguration configuration)
 {
-    services.AddSerilog((registeredServices, configuration) => configuration
-        .ReadFrom.Services(registeredServices)
-        .MinimumLevel.Information()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-        .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
-        .Enrich.FromLogContext()
-        .WriteTo.Console(
-            standardErrorFromLevel: LogEventLevel.Verbose,
-            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-        .WriteTo.File(
-            LogPath("server-.log"),
-            rollingInterval: RollingInterval.Day,
-            retainedFileCountLimit: 14,
-            fileSizeLimitBytes: 10 * 1024 * 1024,
-            rollOnFileSizeLimit: true,
-            shared: true,
-            outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"));
+    ApplyServerLoggingRequirements(configuration);
+    ResolveRelativeFileSinkPaths(configuration);
+    services.AddSerilog((registeredServices, loggerConfiguration) => loggerConfiguration
+        .ReadFrom.Configuration(configuration)
+        .ReadFrom.Services(registeredServices));
 }
 
-static string LogPath(string fileName) =>
-    Path.GetFullPath(
-        Path.Combine("..", "..", "..", "..", "..", "data", "logs", fileName),
-        AppContext.BaseDirectory);
+static void ApplyServerLoggingRequirements(IConfiguration configuration)
+{
+    configuration[
+        "Serilog:MinimumLevel:Override:Microsoft.Hosting.Lifetime"] = "Information";
+
+    foreach (var sink in configuration.GetSection("Serilog:WriteTo").GetChildren())
+    {
+        if (string.Equals(sink["Name"], "Console", StringComparison.OrdinalIgnoreCase))
+        {
+            sink["Args:standardErrorFromLevel"] = "Verbose";
+        }
+    }
+}
+
+static void ResolveRelativeFileSinkPaths(IConfiguration configuration)
+{
+    foreach (var sink in configuration.GetSection("Serilog:WriteTo").GetChildren())
+    {
+        if (!string.Equals(sink["Name"], "File", StringComparison.OrdinalIgnoreCase))
+        {
+            continue;
+        }
+
+        var path = sink["Args:path"];
+        if (!string.IsNullOrWhiteSpace(path) && !Path.IsPathRooted(path))
+        {
+            sink["Args:path"] = Path.GetFullPath(path, AppContext.BaseDirectory);
+        }
+    }
+}
 
 public partial class Program;

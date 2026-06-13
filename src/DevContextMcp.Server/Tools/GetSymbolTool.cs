@@ -6,7 +6,9 @@ using ModelContextProtocol.Server;
 namespace DevContextMcp.Server.Tools;
 
 [McpServerToolType]
-public sealed class GetSymbolTool(IGetSymbolHandler handler)
+internal sealed class GetSymbolTool(
+    IGetSymbolHandler handler,
+    ToolInvocationLogger invocationLogger)
 {
     [McpServerTool(
         Name = "get_symbol",
@@ -22,14 +24,18 @@ public sealed class GetSymbolTool(IGetSymbolHandler handler)
         [Description("Whether prerelease versions may be selected.")] bool includePrerelease = false,
         CancellationToken cancellationToken = default)
     {
-        return handler.HandleAsync(
-            new GetSymbolRequest(
-                libraryId,
-                symbol,
-                version,
-                targetFramework,
-                projectVersion,
-                includePrerelease),
+        var request = new GetSymbolRequest(
+            libraryId,
+            symbol,
+            version,
+            targetFramework,
+            projectVersion,
+            includePrerelease);
+
+        return invocationLogger.InvokeAsync(
+            "get_symbol",
+            request,
+            token => handler.HandleAsync(request, token),
             cancellationToken);
     }
 }

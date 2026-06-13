@@ -15,7 +15,7 @@ public sealed class IndexerOptionsValidatorTests
 
         var result = Validate(new IndexerOptions
         {
-            NuGetSourcesPath = folder.Path,
+            NugetsPath = folder.Path,
             Environments = [Feed("public")]
         });
 
@@ -28,7 +28,7 @@ public sealed class IndexerOptionsValidatorTests
         using var folder = PackageFolder.Create();
         var result = Validate(new IndexerOptions
         {
-            NuGetSourcesPath = folder.Path,
+            NugetsPath = folder.Path,
             Environments =
             [
                 Feed("internal"),
@@ -46,7 +46,7 @@ public sealed class IndexerOptionsValidatorTests
             ("Invalid.json", Package("bad environment", "Company.Package", 0)));
         var result = Validate(new IndexerOptions
         {
-            NuGetSourcesPath = folder.Path,
+            NugetsPath = folder.Path,
             Environments =
             [
                 new NuGetEnvironmentOptions
@@ -76,7 +76,7 @@ public sealed class IndexerOptionsValidatorTests
         var missingPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
         var missing = Validate(new IndexerOptions
         {
-            NuGetSourcesPath = missingPath,
+            NugetsPath = missingPath,
             Environments = [Feed("qa")]
         });
         AssertFailure(missing, missingPath);
@@ -84,7 +84,7 @@ public sealed class IndexerOptionsValidatorTests
         using var folder = PackageFolder.Create(("Broken.json", "{"));
         var malformed = Validate(new IndexerOptions
         {
-            NuGetSourcesPath = folder.Path,
+            NugetsPath = folder.Path,
             Environments = [Feed("qa")]
         });
         AssertFailure(malformed, "Broken.json");
@@ -105,7 +105,7 @@ public sealed class IndexerOptionsValidatorTests
 
         var result = Validate(new IndexerOptions
         {
-            NuGetSourcesPath = folder.Path,
+            NugetsPath = folder.Path,
             Environments = [Feed("qa")]
         });
 
@@ -121,7 +121,7 @@ public sealed class IndexerOptionsValidatorTests
             ("C.json", Package("production", "Other.Package")));
         var result = Validate(new IndexerOptions
         {
-            NuGetSourcesPath = folder.Path,
+            NugetsPath = folder.Path,
             Environments = [Feed("qa")]
         });
 
@@ -140,7 +140,7 @@ public sealed class IndexerOptionsValidatorTests
 
         var result = Validate(new IndexerOptions
         {
-            NuGetSourcesPath = folder.Path,
+            NugetsPath = folder.Path,
             Environments = [feed]
         });
 
@@ -163,7 +163,7 @@ public sealed class IndexerOptionsValidatorTests
 
         var result = Validate(new IndexerOptions
         {
-            NuGetSourcesPath = folder.Path,
+            NugetsPath = folder.Path,
             Environments = [Feed("qa")]
         });
         var package = Assert.Single(new NuGetPackageOptionsLoader().Load(folder.Path));
@@ -184,7 +184,7 @@ public sealed class IndexerOptionsValidatorTests
     }
 
     [Fact]
-    public void LoaderResolvesRelativePathsAndCachesFilenameOrderedFiles()
+    public void LoaderRecursivelyLoadsPathOrderedFilesAndCachesResults()
     {
         var name = $"nuget-options-{Guid.NewGuid():N}";
         var path = Path.Combine(AppContext.BaseDirectory, name);
@@ -192,8 +192,14 @@ public sealed class IndexerOptionsValidatorTests
 
         try
         {
-            File.WriteAllText(Path.Combine(path, "B.json"), Package("qa", "B"));
-            File.WriteAllText(Path.Combine(path, "A.json"), Package("qa", "A"));
+            var firstFolder = Directory.CreateDirectory(Path.Combine(path, "a"));
+            var secondFolder = Directory.CreateDirectory(Path.Combine(path, "z"));
+            File.WriteAllText(
+                Path.Combine(secondFolder.FullName, "B.json"),
+                Package("qa", "B"));
+            File.WriteAllText(
+                Path.Combine(firstFolder.FullName, "A.json"),
+                Package("qa", "A"));
             var loader = new NuGetPackageOptionsLoader();
 
             var first = loader.Load(name);
@@ -306,7 +312,10 @@ public sealed class IndexerOptionsValidatorTests
             Directory.CreateDirectory(path);
             foreach (var file in files)
             {
-                File.WriteAllText(System.IO.Path.Combine(path, file.Name), file.Content);
+                var filePath = System.IO.Path.Combine(path, file.Name);
+                Directory.CreateDirectory(
+                    System.IO.Path.GetDirectoryName(filePath)!);
+                File.WriteAllText(filePath, file.Content);
             }
 
             return new(path);

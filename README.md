@@ -198,6 +198,9 @@ Host configuration:
       "QueryTimeout": "00:00:05",
       "MinimumEvidenceScore": 0.15,
       "AmbiguousSymbolLimit": 10
+    },
+    "ToolLogging": {
+      "MaxPayloadBytes": 32768
     }
   }
 }
@@ -209,7 +212,7 @@ Indexer CLI configuration:
 {
   "DevContextMcp": {
     "DatabasePath": "data/docs.db",
-    "NuGetSourcesPath": "nuget-sources",
+    "NugetsPath": "nugets",
     "Environments": [
       {
         "Name": "production",
@@ -230,8 +233,8 @@ Indexer CLI configuration:
 }
 ```
 
-Create one top-level JSON file per package in the external
-`nuget-sources` folder:
+Create one JSON file per package anywhere under the external `nugets` folder.
+Subfolders can organize definitions by environment or another convention:
 
 ```json
 {
@@ -255,6 +258,10 @@ To remove that package from the environment, keep a minimal tombstone file:
 
 The package remains deleted until the tombstone is removed or changed back to
 `Delete: false`.
+
+Removing the JSON file or the package from its NuGet feed does not delete
+previously indexed data. Indexed versions are removed only by a matching
+`Delete: true` tombstone.
 
 ### Configuration loading and overrides
 
@@ -281,7 +288,7 @@ Environment variables and command-line arguments override JSON values.
 Collection entries use a zero-based index. `TimeSpan` values use `hh:mm:ss`,
 so `00:02:00` means two minutes. Invalid values fail startup rather than
 silently falling back. Overrides may change `Environments` and
-`NuGetSourcesPath`; package policy fields are owned only by the external JSON
+`NugetsPath`; package policy fields are owned only by the external JSON
 files.
 
 Configuration is read when the process starts. Restart the Host or rerun the
@@ -304,19 +311,36 @@ Indexer CLI after changing its `appsettings.json` or package files.
 | `Retrieval:QueryTimeout` | Maximum duration of each retrieval operation, including SQLite queries. A timeout returns a structured tool error instead of waiting indefinitely. |
 | `Retrieval:MinimumEvidenceScore` | Lowest accepted `query_docs` relevance score, from `0` through `1`. Higher values return less, stronger evidence; lower values accept weaker matches. |
 | `Retrieval:AmbiguousSymbolLimit` | Maximum number of symbol candidates returned when `get_symbol` cannot select one unambiguous symbol. It must be positive. |
+| `ToolLogging:MaxPayloadBytes` | Maximum UTF-8 size of each Debug request or response payload before it is replaced by a valid JSON envelope containing a bounded preview, the original byte count, and a truncation flag. It must be positive and defaults to 32768. |
 
 ### Indexer root values
 
 | Setting | Meaning and rules |
 | --- | --- |
 | `DatabasePath` | SQLite index created and updated by the Indexer CLI. Use exactly the same path as the Host. Relative paths are resolved from the Indexer CLI executable directory. |
-| `NuGetSourcesPath` | External folder containing top-level package JSON files. Relative paths resolve from the Indexer CLI executable directory. The folder must exist and is not copied by the project. Files are loaded once at startup in filename order. |
+| `NugetsPath` | External folder containing package JSON files. Relative paths resolve from the Indexer CLI executable directory. The folder must exist and is not copied by the project. Files are loaded recursively once at startup in full-path order. |
 | `Environments` | NuGet feeds or local package folders to index. Each entry represents one uniquely named environment. The collection may be empty; the Indexer CLI then succeeds without doing work. |
 | `Indexing` | Download, archive-safety, and document-processing limits described below. |
 
 The Server and Indexer use Serilog for console and daily rolling file logs.
 Files are written to `data/logs/server-YYYYMMDD.log` and
 `data/logs/indexer-YYYYMMDD.log`, retain 14 files, and roll at 10 MB.
+
+Server tool request and response payloads are logged at `Debug` and are disabled
+by the default `Information` level. Enable only these events by adding the
+following Serilog override:
+
+```json
+{
+  "Serilog": {
+    "MinimumLevel": {
+      "Override": {
+        "DevContextMcp.Server.Tools": "Debug"
+      }
+    }
+  }
+}
+```
 
 ### NuGet environment values
 
@@ -335,12 +359,14 @@ Files are written to `data/logs/server-YYYYMMDD.log` and
 | `Delete` | When `true`, removes every indexed version of the package from this environment without contacting the feed. Delete tombstones require only `Environment` and `PackageId`. The default is `false`. |
 | `IncludePrerelease` | When `true`, discovery and metadata selection may include prerelease versions. Retrieval still requires its request-level `IncludePrerelease` flag before selecting a prerelease by fallback or recommendation. |
 | `IncludeUnlisted` | When `true`, metadata selection may include unlisted versions. |
-| `MaxVersionsPerPackage` | Maximum newest versions retained for each package after prerelease and unlisted filters. It must be positive. There is no unlimited value; use a sufficiently large number when all available versions are required. Lowering it prunes versions outside the retained set on the next successful feed publication. |
+| `MaxVersionsPerPackage` | Maximum newest versions selected from the feed during each indexing run after prerelease and unlisted filters. It must be positive. There is no unlimited value; use a sufficiently large number when all available versions must be indexed. Lowering it does not delete versions already in the index. |
 
 Each feed is indexed and published once with all package files whose
 `Environment` matches its `Name`. Delete tombstones are applied in the same
 transaction but are not discovered or downloaded. A feed with no matching
-files is skipped without pruning existing data.
+files is skipped without deleting existing data. Missing package JSON files,
+missing `.nupkg` files, and versions excluded by a reduced version limit remain
+indexed until an explicit `Delete: true` tombstone removes their package.
 
 ### Indexing values
 
@@ -387,7 +413,7 @@ The Indexer CLI must first index a version before the Host can select it.
 Give both processes the same `DatabasePath`. Relative database paths resolve
 from each process's executable directory. Relative local feed paths still
 resolve from the Indexer CLI working directory, while relative
-`NuGetSourcesPath` values resolve from the Indexer CLI executable directory.
+`NugetsPath` values resolve from the Indexer CLI executable directory.
 
 After upgrading an existing database, run the Indexer CLI before the Host so it
 can apply the current schema migration.

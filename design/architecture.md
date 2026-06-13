@@ -138,8 +138,10 @@ its environment slug. Exact package-selection policies come from an external
 folder and are joined to the feed with the matching environment. Each feed is
 discovered and published once with the complete active package set. Package
 deletion tombstones are applied in the same transaction without contacting the
-feed. Feeds with no matching package files are omitted so existing rows are
-not pruned.
+feed. Existing package and version rows are never pruned because configuration,
+feed contents, or version limits changed; only an explicit `Delete: true`
+tombstone removes indexed NuGet data. Feeds with no matching package files are
+omitted so existing rows remain unchanged.
 
 ## Retrieval Flow
 

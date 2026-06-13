@@ -35,8 +35,8 @@ public sealed class IndexerOptionsValidator :
             "DevContextMcp:DatabasePath",
             failures);
         ConfigurationValidation.ValidatePath(
-            options.NuGetSourcesPath,
-            "DevContextMcp:NuGetSourcesPath",
+            options.NugetsPath,
+            "DevContextMcp:NugetsPath",
             failures);
         ValidateLimits(options.Indexing, failures);
         ValidateSourceNames(options, failures);
@@ -44,7 +44,7 @@ public sealed class IndexerOptionsValidator :
         ValidateDocumentation(options.Documentation, failures);
 
         if (options.Environments.Count > 0
-            && !string.IsNullOrWhiteSpace(options.NuGetSourcesPath))
+            && !string.IsNullOrWhiteSpace(options.NugetsPath))
         {
             ValidatePackages(options, failures);
         }
@@ -218,7 +218,7 @@ public sealed class IndexerOptionsValidator :
         IReadOnlyList<NuGetPackageOptions> packages;
         try
         {
-            packages = _packageOptionsLoader.Load(options.NuGetSourcesPath);
+            packages = _packageOptionsLoader.Load(options.NugetsPath);
         }
         catch (Exception exception)
         {

@@ -35,6 +35,7 @@ public static class DependencyInjection
             new OptionsRetrievalConfigurationProvider(
                 provider.GetRequiredService<IOptions<DevContextMcpOptions>>()));
         services.AddSingleton<ToolRegistrationCatalog>();
+        services.AddSingleton<ToolInvocationLogger>();
         services.AddHostedService<StartupDiagnosticsHostedService>();
 
         return services;

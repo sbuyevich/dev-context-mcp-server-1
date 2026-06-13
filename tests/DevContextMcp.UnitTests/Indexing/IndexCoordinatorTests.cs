@@ -46,9 +46,7 @@ public sealed class IndexCoordinatorTests
                 It.IsAny<IndexSourceDefinition>(),
                 It.IsAny<DateTimeOffset>(),
                 It.IsAny<IReadOnlyList<PackageIndexData>>(),
-                It.IsAny<IReadOnlyCollection<PackageIdentityKey>>(),
                 It.IsAny<IReadOnlyList<IndexRunError>>(),
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(EmptyPublishResult());
 
@@ -80,12 +78,9 @@ public sealed class IndexCoordinatorTests
                 It.IsAny<DateTimeOffset>(),
                 It.Is<IReadOnlyList<PackageIndexData>>(packages =>
                     packages.Count == 0),
-                It.Is<IReadOnlyCollection<PackageIdentityKey>>(retained =>
-                    retained.Count == 0),
                 It.Is<IReadOnlyList<IndexRunError>>(errors =>
                     errors.Count == 1
                     && errors[0].Code == "source_discovery_failed"),
-                false,
                 It.IsAny<CancellationToken>()),
             Times.Once);
         _indexStore.Verify(
@@ -147,9 +142,7 @@ public sealed class IndexCoordinatorTests
                 It.IsAny<IndexSourceDefinition>(),
                 It.IsAny<DateTimeOffset>(),
                 It.IsAny<IReadOnlyList<PackageIndexData>>(),
-                It.IsAny<IReadOnlyCollection<PackageIdentityKey>>(),
                 It.IsAny<IReadOnlyList<IndexRunError>>(),
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(EmptyPublishResult());
 
@@ -187,12 +180,9 @@ public sealed class IndexCoordinatorTests
                 It.IsAny<DateTimeOffset>(),
                 It.Is<IReadOnlyList<PackageIndexData>>(packages =>
                     packages.Count == 0),
-                It.Is<IReadOnlyCollection<PackageIdentityKey>>(retained =>
-                    retained.Count == candidates.Count),
                 It.Is<IReadOnlyList<IndexRunError>>(errors =>
                     errors.Count == candidates.Count
                     && errors.All(error => error.Code == "package_index_failed")),
-                true,
                 It.IsAny<CancellationToken>()),
             Times.Once);
         _indexStore.Verify(
@@ -209,6 +199,47 @@ public sealed class IndexCoordinatorTests
             Times.Never);
         VerifyDocumentationNotCalled();
         VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task IndexAllAsync_DocumentationSucceeds_ReturnsIndexedDocumentPaths()
+    {
+        var documentationSource = new DocumentationSourceDefinition(
+            "docs",
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".md" });
+        SetupCommon(new(
+            DatabasePath,
+            CreateLimits(),
+            [],
+            documentationSource));
+        var documentation = new DocumentationIndexData(
+            "hash",
+            [
+                new ArtifactRecord("api.md", "company_document", "a", 1),
+                new ArtifactRecord("nested/design.md", "company_document", "b", 1)
+            ],
+            []);
+        _documentationReader
+            .Setup(reader => reader.ReadAsync(
+                documentationSource,
+                It.IsAny<PackageProcessingLimits>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(documentation);
+        _indexStore
+            .Setup(store => store.PublishDocumentationAsync(
+                DatabasePath,
+                documentationSource,
+                It.IsAny<DateTimeOffset>(),
+                documentation,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EmptyPublishResult());
+
+        var actual = await _target.IndexAllAsync(CancellationToken.None);
+
+        Assert.Equal(["api.md", "nested/design.md"], actual.IndexedDocuments);
+        var summary = Assert.Single(actual.Summaries);
+        Assert.Equal("company-docs", summary.SourceName);
+        Assert.Equal(2, summary.Indexed);
     }
 
     private void SetupCommon(IndexingSettings settings)

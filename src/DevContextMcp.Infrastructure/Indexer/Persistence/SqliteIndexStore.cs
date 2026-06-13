@@ -150,9 +150,7 @@ internal sealed class SqliteIndexStore : IIndexStore
         IndexSourceDefinition source,
         DateTimeOffset startedAt,
         IReadOnlyList<PackageIndexData> packages,
-        IReadOnlyCollection<PackageIdentityKey> retainedPackages,
         IReadOnlyList<IndexRunError> errors,
-        bool pruneMissing,
         CancellationToken cancellationToken)
     {
         var resolvedPath = ResolveDatabasePath(databasePath);
@@ -218,16 +216,6 @@ internal sealed class SqliteIndexStore : IIndexStore
             sourceId,
             source.DeletedPackageIds,
             cancellationToken));
-
-        if (pruneMissing)
-        {
-            deleted.AddRange(await PruneMissingVersionsAsync(
-                connection,
-                transaction,
-                sourceId,
-                retainedPackages,
-                cancellationToken));
-        }
 
         await RefreshSourceLibrarySearchAsync(
             connection,
@@ -608,53 +596,6 @@ internal sealed class SqliteIndexStore : IIndexStore
                 [("$versionId", versionId), ("$framework", framework.Framework)],
                 cancellationToken);
         }
-    }
-
-    private static async Task<IReadOnlyList<PackageIdentityKey>> PruneMissingVersionsAsync(
-        SqliteConnection connection,
-        SqliteTransaction transaction,
-        string sourceId,
-        IReadOnlyCollection<PackageIdentityKey> retainedPackages,
-        CancellationToken cancellationToken)
-    {
-        var retained = retainedPackages
-            .Select(identity => identity.ToStableId(sourceId))
-            .ToHashSet(StringComparer.Ordinal);
-        var existing = new List<(string VersionId, PackageIdentityKey Identity)>();
-
-        await using (var command = connection.CreateCommand())
-        {
-            command.Transaction = transaction;
-            command.CommandText =
-                """
-                SELECT library_versions.id, libraries.package_id, library_versions.version
-                FROM library_versions
-                INNER JOIN libraries ON libraries.id = library_versions.library_id
-                WHERE libraries.source_id = $sourceId;
-                """;
-            command.Parameters.AddWithValue("$sourceId", sourceId);
-
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
-            {
-                existing.Add((
-                    reader.GetString(0),
-                    new PackageIdentityKey(reader.GetString(1), reader.GetString(2))));
-            }
-        }
-
-        var deleted = new List<PackageIdentityKey>();
-        foreach (var item in existing.Where(item => !retained.Contains(item.VersionId)))
-        {
-            await DeleteVersionAsync(
-                connection,
-                transaction,
-                item.VersionId,
-                cancellationToken);
-            deleted.Add(item.Identity);
-        }
-
-        return deleted;
     }
 
     private static async Task<IReadOnlyList<PackageIdentityKey>> DeleteConfiguredPackagesAsync(

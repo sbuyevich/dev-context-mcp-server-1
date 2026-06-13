@@ -6,7 +6,9 @@ using ModelContextProtocol.Server;
 namespace DevContextMcp.Server.Tools;
 
 [McpServerToolType]
-public sealed class QueryDocsTool(IQueryDocsHandler handler)
+internal sealed class QueryDocsTool(
+    IQueryDocsHandler handler,
+    ToolInvocationLogger invocationLogger)
 {
     [McpServerTool(
         Name = "query_docs",
@@ -23,15 +25,19 @@ public sealed class QueryDocsTool(IQueryDocsHandler handler)
         [Description("Whether prerelease versions may be selected.")] bool includePrerelease = false,
         CancellationToken cancellationToken = default)
     {
-        return handler.HandleAsync(
-            new QueryDocsRequest(
-                libraryId,
-                question,
-                version,
-                targetFramework,
-                maxResults,
-                projectVersion,
-                includePrerelease),
+        var request = new QueryDocsRequest(
+            libraryId,
+            question,
+            version,
+            targetFramework,
+            maxResults,
+            projectVersion,
+            includePrerelease);
+
+        return invocationLogger.InvokeAsync(
+            "query_docs",
+            request,
+            token => handler.HandleAsync(request, token),
             cancellationToken);
     }
 }

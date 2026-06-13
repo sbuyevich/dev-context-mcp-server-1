@@ -50,7 +50,7 @@ internal sealed class NuGetPackageOptionsLoader : INuGetPackageOptionsLoader
             IEnumerable<string> files;
             try
             {
-                files = Directory.EnumerateFiles(path, "*.json", SearchOption.TopDirectoryOnly)
+                files = Directory.EnumerateFiles(path, "*.json", SearchOption.AllDirectories)
                     .Order(StringComparer.Ordinal)
                     .ToArray();
             }

@@ -17,4 +17,6 @@ public sealed class DevContextMcpOptions
         new(StringComparer.OrdinalIgnoreCase);
 
     public RetrievalOptions Retrieval { get; set; } = new();
+
+    public ToolLoggingOptions ToolLogging { get; set; } = new();
 }

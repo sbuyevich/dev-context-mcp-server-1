@@ -234,10 +234,10 @@ public sealed class NuGetIndexingPipelineTests
     }
 
     [Fact]
-    public async Task PackageFilesPublishTogetherAndControlPruning()
+    public async Task RemovingPackageSourceJsonDoesNotDeleteIndexedPackage()
     {
         const string secondPackageId = "Fixture.Second";
-        var root = Path.Combine(Path.GetTempPath(), $"mcp-doc-pruning-{Guid.NewGuid():N}");
+        var root = Path.Combine(Path.GetTempPath(), $"mcp-doc-source-removal-{Guid.NewGuid():N}");
         var feed = Path.Combine(root, "feed");
         var databasePath = Path.Combine(root, "index", "docs.db");
         FixtureNuGetPackage.Create(feed);
@@ -273,33 +273,80 @@ public sealed class NuGetIndexingPipelineTests
                     summary.Added);
             }
 
-            File.Delete(Path.Combine(sourcesPath, $"test.{secondPackageId}.json"));
+            File.Delete(Path.Combine(
+                sourcesPath,
+                "test",
+                $"{secondPackageId}.json"));
             using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
             {
                 var summary = Assert.Single((await provider
                     .GetRequiredService<IIndexCoordinator>()
                     .IndexAllAsync(CancellationToken.None)).Summaries);
-                Assert.Equal(
-                    [new PackageIdentityKey(secondPackageId, FixtureNuGetPackage.Version)],
-                    summary.Deleted);
+                Assert.Empty(summary.Deleted);
             }
 
             await using var connection = new SqliteConnection(
                 $"Data Source={databasePath};Pooling=False");
             await connection.OpenAsync();
             Assert.Equal(
-                1L,
+                2L,
                 await ScalarAsync(connection, "SELECT COUNT(*) FROM library_versions;"));
 
             File.Delete(Path.Combine(
                 sourcesPath,
-                $"test.{FixtureNuGetPackage.PackageId}.json"));
+                "test",
+                $"{FixtureNuGetPackage.PackageId}.json"));
             using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
             {
                 Assert.Empty((await provider.GetRequiredService<IIndexCoordinator>()
                     .IndexAllAsync(CancellationToken.None)).Summaries);
             }
 
+            Assert.Equal(
+                2L,
+                await ScalarAsync(connection, "SELECT COUNT(*) FROM library_versions;"));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task RemovingPackageFileDoesNotDeleteIndexedVersion()
+    {
+        var root = Path.Combine(Path.GetTempPath(), $"mcp-doc-package-removal-{Guid.NewGuid():N}");
+        var feed = Path.Combine(root, "feed");
+        var databasePath = Path.Combine(root, "index", "docs.db");
+        var packagePath = FixtureNuGetPackage.Create(feed);
+
+        try
+        {
+            using (var provider = CreateProvider(feed, databasePath))
+            {
+                await provider.GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None);
+            }
+
+            File.Delete(packagePath);
+            using (var provider = CreateProvider(feed, databasePath))
+            {
+                var result = await provider.GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None);
+                var summary = Assert.Single(result.Summaries);
+
+                Assert.Empty(summary.Deleted);
+                Assert.Contains(
+                    result.IndexedLibraries,
+                    library => library.PackageId == FixtureNuGetPackage.PackageId);
+            }
+
+            await using var connection = new SqliteConnection(
+                $"Data Source={databasePath};Pooling=False");
+            await connection.OpenAsync();
             Assert.Equal(
                 1L,
                 await ScalarAsync(connection, "SELECT COUNT(*) FROM library_versions;"));
@@ -314,7 +361,69 @@ public sealed class NuGetIndexingPipelineTests
     }
 
     [Fact]
-    public async Task DeleteTombstoneRemovesAllVersionsWithoutDiscoveringOrPruningOthers()
+    public async Task ReducingVersionLimitDoesNotDeleteIndexedVersions()
+    {
+        const string olderVersion = "1.0.0";
+        const string newerVersion = "2.0.0";
+        var root = Path.Combine(Path.GetTempPath(), $"mcp-doc-version-limit-{Guid.NewGuid():N}");
+        var feed = Path.Combine(root, "feed");
+        var databasePath = Path.Combine(root, "index", "docs.db");
+        FixtureNuGetPackage.Create(feed, version: olderVersion);
+        FixtureNuGetPackage.Create(feed, version: newerVersion);
+        var sourcesPath = FixtureNuGetConfiguration.CreatePackageFolder(
+            root,
+            new FixtureNuGetConfiguration.PackagePolicy(
+                "test",
+                FixtureNuGetPackage.PackageId,
+                MaxVersionsPerPackage: 2));
+
+        try
+        {
+            using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
+            {
+                await provider.GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None);
+            }
+
+            FixtureNuGetConfiguration.CreatePackageFolder(
+                root,
+                new FixtureNuGetConfiguration.PackagePolicy(
+                    "test",
+                    FixtureNuGetPackage.PackageId,
+                    MaxVersionsPerPackage: 1));
+
+            using (var provider = CreateProvider(feed, databasePath, sourcesPath: sourcesPath))
+            {
+                var result = await provider.GetRequiredService<IIndexCoordinator>()
+                    .IndexAllAsync(CancellationToken.None);
+                var summary = Assert.Single(result.Summaries);
+                var library = Assert.Single(result.IndexedLibraries);
+                var environment = Assert.Single(library.Environments);
+
+                Assert.Empty(summary.Deleted);
+                Assert.Equal(
+                    [olderVersion, newerVersion],
+                    environment.Versions.Order(StringComparer.Ordinal));
+            }
+
+            await using var connection = new SqliteConnection(
+                $"Data Source={databasePath};Pooling=False");
+            await connection.OpenAsync();
+            Assert.Equal(
+                2L,
+                await ScalarAsync(connection, "SELECT COUNT(*) FROM library_versions;"));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task DeleteTombstoneRemovesAllVersionsWithoutDiscoveringOrDeletingOthers()
     {
         const string retainedPackageId = "Fixture.Retained";
         const string olderVersion = "1.0.0";
@@ -597,7 +706,7 @@ public sealed class NuGetIndexingPipelineTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["DevContextMcp:DatabasePath"] = databasePath,
-                ["DevContextMcp:NuGetSourcesPath"] = sourcesPath,
+                ["DevContextMcp:NugetsPath"] = sourcesPath,
                 ["DevContextMcp:Environments:0:Name"] = environment,
                 ["DevContextMcp:Environments:0:ServiceIndex"] = feed,
                 ["DevContextMcp:Environments:0:MaxPackages"] = "10",

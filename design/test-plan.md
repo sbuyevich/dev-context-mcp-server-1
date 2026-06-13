@@ -8,9 +8,9 @@
 
 ## Run Indexing
 
-Configure feeds and `NuGetSourcesPath` in
+Configure feeds and `NugetsPath` in
 `src/DevContextMcp.Indexer/appsettings.json`, then create one JSON file per
-package in that external folder. Relative folder paths resolve from the built
+package in that external folder or its subfolders. Relative folder paths resolve from the built
 Indexer CLI executable directory. The Indexer CLI and Host must use the same
 `DevContextMcp:DatabasePath`.
 

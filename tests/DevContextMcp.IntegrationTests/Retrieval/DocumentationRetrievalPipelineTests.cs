@@ -47,11 +47,14 @@ public sealed class DocumentationRetrievalPipelineTests
             using var provider = CreateProvider(docsRoot, databasePath);
             var coordinator = provider.GetRequiredService<IIndexCoordinator>();
 
-            var first = Assert.Single(
-                (await coordinator.IndexAllAsync(CancellationToken.None)).Summaries);
+            var firstResult = await coordinator.IndexAllAsync(CancellationToken.None);
+            var first = Assert.Single(firstResult.Summaries);
             Assert.Equal("succeeded", first.Status);
             Assert.Equal(2, first.Discovered);
             Assert.Equal(1, first.Changed);
+            Assert.Equal(
+                ["review.txt", "testing/standards.md"],
+                firstResult.IndexedDocuments);
             Assert.Equal(
                 [new PackageIdentityKey("company-docs", "current")],
                 first.Added);
@@ -69,10 +72,14 @@ public sealed class DocumentationRetrievalPipelineTests
                 "docs",
                 await TextScalarAsync(connection, "SELECT kind FROM libraries;"));
 
-            var unchanged = Assert.Single(
-                (await coordinator.IndexAllAsync(CancellationToken.None)).Summaries);
+            var unchangedResult = await coordinator.IndexAllAsync(
+                CancellationToken.None);
+            var unchanged = Assert.Single(unchangedResult.Summaries);
             Assert.Equal(0, unchanged.Changed);
             Assert.Equal(1, unchanged.Unchanged);
+            Assert.Equal(
+                ["review.txt", "testing/standards.md"],
+                unchangedResult.IndexedDocuments);
 
             var resolved = await provider.GetRequiredService<IResolveLibraryHandler>()
                 .HandleAsync(

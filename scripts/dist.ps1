@@ -132,7 +132,7 @@ function New-DataLayout {
 
     @(
         "database",
-        "nuget-sources",
+        "nugets",
         "nuget-repositories\qa",
         "nuget-repositories\prod"
     ) | ForEach-Object {
@@ -284,7 +284,7 @@ Set-JsonFile -Path $serverSettingsPath -Value $serverSettings
 $indexerSettingsPath = Join-Path $indexerOutput "appsettings.json"
 $indexerSettings = Get-Content -LiteralPath $indexerSettingsPath -Raw | ConvertFrom-Json
 $indexerSettings.DevContextMcp.DatabasePath = "../data/database/docs.db"
-$indexerSettings.DevContextMcp.NuGetSourcesPath = "../data/nuget-sources"
+$indexerSettings.DevContextMcp.NugetsPath = "../data/nugets"
 foreach ($environment in $indexerSettings.DevContextMcp.Environments) {
     if ($environment.Name -eq "qa") {
         $environment.ServiceIndex = "../data/nuget-repositories/qa"
@@ -381,7 +381,7 @@ Remove-Item -LiteralPath $stagingRoot -Recurse -Force
 
 $dataEntries = @(
     "data/database/",
-    "data/nuget-sources/",
+    "data/nugets/",
     "data/nuget-repositories/qa/",
     "data/nuget-repositories/prod/"
 )

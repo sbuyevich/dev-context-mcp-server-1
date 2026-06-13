@@ -15,7 +15,7 @@ internal sealed class OptionsIndexingConfigurationProvider(
         var limits = value.Indexing;
         var packages = value.Environments.Count == 0
             ? []
-            : packageOptionsLoader.Load(value.NuGetSourcesPath);
+            : packageOptionsLoader.Load(value.NugetsPath);
 
         return new(
             Path.GetFullPath(value.DatabasePath, AppContext.BaseDirectory),

@@ -8,21 +8,23 @@ internal static class FixtureNuGetConfiguration
         string root,
         params PackagePolicy[] packages)
     {
-        var path = Path.Combine(root, "nuget-sources");
+        var path = Path.Combine(root, "nugets");
         Directory.CreateDirectory(path);
         foreach (var file in Directory.EnumerateFiles(
                      path,
                      "*.json",
-                     SearchOption.TopDirectoryOnly))
+                     SearchOption.AllDirectories))
         {
             File.Delete(file);
         }
 
         foreach (var package in packages)
         {
-            var fileName = $"{package.Environment}.{package.PackageId}.json";
+            var environmentPath = Path.Combine(path, package.Environment);
+            Directory.CreateDirectory(environmentPath);
+            var fileName = $"{package.PackageId}.json";
             File.WriteAllText(
-                Path.Combine(path, fileName),
+                Path.Combine(environmentPath, fileName),
                 JsonSerializer.Serialize(new
                 {
                     package.Delete,

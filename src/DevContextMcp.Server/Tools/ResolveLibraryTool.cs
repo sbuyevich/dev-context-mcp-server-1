@@ -7,7 +7,9 @@ using ModelContextProtocol.Server;
 namespace DevContextMcp.Server.Tools;
 
 [McpServerToolType]
-public sealed class ResolveLibraryTool(IResolveLibraryHandler handler)
+internal sealed class ResolveLibraryTool(
+    IResolveLibraryHandler handler,
+    ToolInvocationLogger invocationLogger)
 {
     [McpServerTool(
         Name = "resolve_library",
@@ -23,8 +25,10 @@ public sealed class ResolveLibraryTool(IResolveLibraryHandler handler)
     {
         var request = CreateRequest(query, includePrerelease, limit, environment);
 
-        return handler.HandleAsync(
+        return invocationLogger.InvokeAsync(
+            "resolve_library",
             request,
+            token => handler.HandleAsync(request, token),
             cancellationToken);
     }
 

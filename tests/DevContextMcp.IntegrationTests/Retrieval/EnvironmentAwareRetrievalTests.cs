@@ -156,7 +156,7 @@ public sealed class EnvironmentAwareRetrievalTests
             ["DevContextMcp:Indexing:MaxCompressionRatio"] = "10000"
         };
         var root = Directory.GetParent(qa)!.FullName;
-        values["DevContextMcp:NuGetSourcesPath"] =
+        values["DevContextMcp:NugetsPath"] =
             FixtureNuGetConfiguration.CreatePackageFolder(
                 root,
                 new FixtureNuGetConfiguration.PackagePolicy(

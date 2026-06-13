@@ -1,9 +1,9 @@
 using DevContextMcp.Indexer;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Events;
 
 var builder = Host.CreateApplicationBuilder(
     new HostApplicationBuilderSettings
@@ -12,21 +12,10 @@ var builder = Host.CreateApplicationBuilder(
         ContentRootPath = AppContext.BaseDirectory
     });
 
+ResolveRelativeFileSinkPaths(builder.Configuration);
 builder.Services.AddSerilog((services, configuration) => configuration
-    .ReadFrom.Services(services)
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .Enrich.FromLogContext()
-    .WriteTo.Console(
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .WriteTo.File(
-        LogPath("indexer-.log"),
-        rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 14,
-        fileSizeLimitBytes: 10 * 1024 * 1024,
-        rollOnFileSizeLimit: true,
-        shared: true,
-        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"));
+    .ReadFrom.Configuration(builder.Configuration)
+    .ReadFrom.Services(services));
 builder.Services.AddIndexerCli(builder.Configuration);
 
 using var host = builder.Build();
@@ -55,9 +44,21 @@ catch (Exception exception)
     return 1;
 }
 
-static string LogPath(string fileName) =>
-    Path.GetFullPath(
-        Path.Combine("..", "..", "..", "..", "..", "data", "logs", fileName),
-        AppContext.BaseDirectory);
+static void ResolveRelativeFileSinkPaths(IConfiguration configuration)
+{
+    foreach (var sink in configuration.GetSection("Serilog:WriteTo").GetChildren())
+    {
+        if (!string.Equals(sink["Name"], "File", StringComparison.OrdinalIgnoreCase))
+        {
+            continue;
+        }
+
+        var path = sink["Args:path"];
+        if (!string.IsNullOrWhiteSpace(path) && !Path.IsPathRooted(path))
+        {
+            sink["Args:path"] = Path.GetFullPath(path, AppContext.BaseDirectory);
+        }
+    }
+}
 
 public partial class Program;

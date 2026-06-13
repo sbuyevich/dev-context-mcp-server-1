@@ -188,7 +188,7 @@ public sealed class NuGetRetrievalPipelineTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["DevContextMcp:DatabasePath"] = databasePath,
-                ["DevContextMcp:NuGetSourcesPath"] = sourcesPath,
+                ["DevContextMcp:NugetsPath"] = sourcesPath,
                 ["DevContextMcp:Environments:0:Name"] = "test",
                 ["DevContextMcp:Environments:0:ServiceIndex"] = feed,
                 ["DevContextMcp:Environments:0:MaxPackages"] = "10",

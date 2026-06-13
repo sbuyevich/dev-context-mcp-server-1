@@ -55,7 +55,7 @@ public sealed class InvalidConfigurationTests
             new Dictionary<string, string?>
             {
                 ["DevContextMcp:DatabasePath"] = "data/docs.db",
-                ["DevContextMcp:NuGetSourcesPath"] = sourcesPath,
+                ["DevContextMcp:NugetsPath"] = sourcesPath,
                 ["DevContextMcp:Indexing:MaxPackageBytes"] = "0"
             });
         builder.Logging.ClearProviders();

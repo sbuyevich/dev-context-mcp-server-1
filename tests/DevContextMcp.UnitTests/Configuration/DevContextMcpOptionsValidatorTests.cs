@@ -134,6 +134,22 @@ public sealed class DevContextMcpOptionsValidatorTests
     }
 
     [Fact]
+    public void NonPositiveToolLoggingPayloadLimitFails()
+    {
+        var result = _validator.Validate(
+            null,
+            new DevContextMcpOptions
+            {
+                ToolLogging = new ToolLoggingOptions
+                {
+                    MaxPayloadBytes = 0
+                }
+            });
+
+        AssertFailure(result, "ToolLogging:MaxPayloadBytes");
+    }
+
+    [Fact]
     public void InvalidQualifiedRecommendationKeyFails()
     {
         var result = _validator.Validate(

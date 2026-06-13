@@ -1,0 +1,5 @@
+{
+  "Environment": "qa",
+  "PackageId": "Demo.Cities",
+  "MaxVersionsPerPackage": 10
+}

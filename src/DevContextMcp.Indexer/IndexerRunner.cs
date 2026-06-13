@@ -35,6 +35,7 @@ internal sealed class IndexerRunner(
                 LogSummary(summary);
             }
 
+            LogIndexedDocuments(result.IndexedDocuments);
             LogIndexedLibraries(result.IndexedLibraries);
 
             return result.Summaries.All(summary =>
@@ -106,5 +107,22 @@ internal sealed class IndexerRunner(
                 ? "(none)"
                 : string.Join($"{Environment.NewLine}{Environment.NewLine}", blocks));
         logger.LogInformation("{IndexedLibraryReport}", report += $"{Environment.NewLine}-----------------------------------------------------------------------------");
+    }
+
+    private void LogIndexedDocuments(IReadOnlyList<string> documents)
+    {
+        var paths = documents
+            .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(path => path, StringComparer.Ordinal);
+        var report = $"{Environment.NewLine}Indexed documents ({documents.Count})" +
+            Environment.NewLine +
+            Environment.NewLine +
+            (documents.Count == 0
+                ? "(none)"
+                : string.Join(
+                    Environment.NewLine,
+                    paths.Select(path => $"    {path}")));
+
+        logger.LogInformation("{IndexedDocumentReport}", report);
     }
 }

@@ -1,0 +1,7 @@
+{
+  "Environment": "public",
+  "PackageId": "Formula.SimpleRepo",
+  "MaxVersionsPerPackage": 10,
+  "IncludePrerelease": false,
+  "IncludeUnlisted": false
+}

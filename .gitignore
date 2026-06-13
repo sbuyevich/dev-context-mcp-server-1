@@ -32,10 +32,6 @@ artifacts/
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
-# NuGet Packages
-*.nupkg
-# NuGet Symbol Packages
-*.snupkg
 
 # dotenv environment variables file
 .env
@@ -45,6 +41,7 @@ ScaffoldingReadMe.txt
 *~
 CodeCoverage/
 /data/
+/database/
 
 # MSBuild Binary and Structured Log
 *.binlog
@@ -57,3 +54,5 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+

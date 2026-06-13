@@ -9,7 +9,7 @@ public sealed class IndexerOptions
 
     public string DatabasePath { get; set; } = "data/docs.db";
 
-    public string NuGetSourcesPath { get; set; } = "nuget-sources";
+    public string NugetsPath { get; set; } = "nugets";
 
     public List<NuGetEnvironmentOptions> Environments { get; set; } = [];
 

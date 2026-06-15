@@ -66,7 +66,7 @@ internal sealed class IndexerRunner(
 
     private static string FormatSummary(IndexRunSummary summary) =>
         $@"
-        Environment: {summary.SourceName}
+        Environment: {(!string.IsNullOrWhiteSpace(summary.Environment) ? summary.Environment : summary.SourceName)}
         Status: {summary.Status}
         NuGets
             Total: {summary.Discovered}

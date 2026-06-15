@@ -73,7 +73,8 @@ internal sealed class IndexCoordinator(
                     Added: publish.Added,
                     Updated: publish.Updated,
                     Deleted: publish.Deleted,
-                    Errors: []),
+                    Errors: [],
+                    Environment: "company-docs"),
                 documentation.Artifacts
                     .Select(artifact => artifact.Path)
                     .ToArray());
@@ -102,7 +103,8 @@ internal sealed class IndexCoordinator(
                     Added: [],
                     Updated: [],
                     Deleted: [],
-                    Errors: [error]),
+                    Errors: [error],
+                    Environment: "company-docs"),
                 []);
         }
     }
@@ -140,6 +142,7 @@ internal sealed class IndexCoordinator(
 
             return new(
                 SourceName: source.Name,
+                Environment: source.Environment,
                 Status: "failed",
                 StartedAt: startedAt,
                 CompletedAt: completedAt,
@@ -202,6 +205,7 @@ internal sealed class IndexCoordinator(
 
         return new(
             SourceName: source.Name,
+            Environment: source.Environment,
             Status: status,
             StartedAt: startedAt,
             CompletedAt: DateTimeOffset.UtcNow,

@@ -199,9 +199,9 @@ public sealed class DocumentationRetrievalPipelineTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["DevContextMcp:DatabasePath"] = databasePath,
-                ["DevContextMcp:IndexerSource:Documentations:RootPath"] = docsRoot,
-                ["DevContextMcp:IndexerSource:Documentations:Extensions:0"] = ".md",
-                ["DevContextMcp:IndexerSource:Documentations:Extensions:1"] = ".txt"
+                ["DevContextMcp:IndexerSource:Documents:RootPath"] = docsRoot,
+                ["DevContextMcp:IndexerSource:Documents:Extensions:0"] = ".md",
+                ["DevContextMcp:IndexerSource:Documents:Extensions:1"] = ".txt"
             })
             .Build();
         var services = new ServiceCollection();

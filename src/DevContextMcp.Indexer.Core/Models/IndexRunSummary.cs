@@ -2,8 +2,8 @@ namespace DevContextMcp.Indexer.Core.Models;
 
 public sealed record IndexRunSummary(
     string SourceName,
-    string Environment,
     string Status,
+    string Environment,
     DateTimeOffset StartedAt,
     DateTimeOffset CompletedAt,
     int Discovered,

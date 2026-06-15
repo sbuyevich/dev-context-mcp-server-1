@@ -14,7 +14,7 @@ internal sealed class IndexerRunner(
     public async Task<bool> RunAsync(CancellationToken cancellationToken)
     {
         if (options.Value.NugetPackages.Count == 0
-            && options.Value.IndexerSource.Documentations is null)
+            && options.Value.IndexerSource.Documents is null)
         {
             logger.LogInformation("No indexing sources are configured; indexing was skipped.");
             return true;
@@ -102,7 +102,7 @@ internal sealed class IndexerRunner(
                     $"    {environment.Environment} ({environment.Versions.Count}): " +
                     string.Join(", ", environment.Versions))));
 
-        var report = $"{Environment.NewLine}Indexed libraries{Environment.NewLine}{Environment.NewLine}" +
+        var report = $"{Environment.NewLine}Indexed NuGets{Environment.NewLine}{Environment.NewLine}" +
             (libraries.Count == 0
                 ? "(none)"
                 : string.Join($"{Environment.NewLine}{Environment.NewLine}", blocks));
@@ -114,7 +114,7 @@ internal sealed class IndexerRunner(
         var paths = documents
             .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
             .ThenBy(path => path, StringComparer.Ordinal);
-        var report = $"{Environment.NewLine}Indexed documents ({documents.Count})" +
+        var report = $"{Environment.NewLine}Indexed Documents" +
             Environment.NewLine +
             Environment.NewLine +
             (documents.Count == 0

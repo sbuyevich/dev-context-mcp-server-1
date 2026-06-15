@@ -245,7 +245,7 @@ public sealed class IndexerOptionsValidatorTests
         {
             IndexerSource = new IndexerSourceOptions
             {
-                Documentations = new DocumentationOptions
+                                Documents = new DocumentationOptions
                 {
                     RootPath = missingPath,
                     Extensions = [".md"]
@@ -259,7 +259,7 @@ public sealed class IndexerOptionsValidatorTests
         {
             IndexerSource = new IndexerSourceOptions
             {
-                Documentations = new DocumentationOptions
+                                Documents = new DocumentationOptions
                 {
                     RootPath = folder.Path,
                     Extensions = [".md", "MD", "*"]
@@ -278,7 +278,7 @@ public sealed class IndexerOptionsValidatorTests
         {
             IndexerSource = new IndexerSourceOptions
             {
-                Documentations = new DocumentationOptions
+                                Documents = new DocumentationOptions
                 {
                     RootPath = folder.Path,
                     Extensions = [".md", ".txt"]

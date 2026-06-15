@@ -13,7 +13,7 @@ internal sealed class SqliteIndexStore : IIndexStore
     private const int SchemaVersion = 4;
     private const string DocumentationLibraryId = "company-docs";
     private const string DocumentationDisplayName = "Company Docs";
-    private const string DocumentationVersion = "current";
+    private const string DocumentationVersion = "";
 
     public async Task<IReadOnlyList<IndexedLibrary>> GetIndexedLibrariesAsync(
         string databasePath,
@@ -287,6 +287,7 @@ internal sealed class SqliteIndexStore : IIndexStore
         var sourceId = StableId("docs", DocumentationLibraryId);
         var libraryId = StableId(sourceId, DocumentationLibraryId);
         var versionId = StableId(sourceId, DocumentationLibraryId, DocumentationVersion);
+
         var existingHash = await GetContentHashAsync(
             connection,
             transaction,
@@ -305,6 +306,7 @@ internal sealed class SqliteIndexStore : IIndexStore
             source.RootPath,
             "docs",
             cancellationToken);
+
         await UpsertLibraryAsync(
             connection,
             transaction,

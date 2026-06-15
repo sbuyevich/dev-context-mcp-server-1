@@ -74,8 +74,8 @@ internal sealed class IndexCoordinator(
                     Updated: publish.Updated,
                     Deleted: publish.Deleted,
                     Errors: [],
-                    Environment: "company-docs"),
-                documentation.Artifacts
+                    Environment: "Documents"),
+                    documentation.Artifacts
                     .Select(artifact => artifact.Path)
                     .ToArray());
         }
@@ -104,7 +104,7 @@ internal sealed class IndexCoordinator(
                     Updated: [],
                     Deleted: [],
                     Errors: [error],
-                    Environment: "company-docs"),
+                    Environment: "Documents"),
                 []);
         }
     }

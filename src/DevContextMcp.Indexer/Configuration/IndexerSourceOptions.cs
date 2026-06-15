@@ -7,5 +7,5 @@ public sealed class IndexerSourceOptions
 {
     public string NugetsPath { get; set; } = "nugets";
 
-    public DocumentationOptions? Documentations { get; set; }
+    public DocumentationOptions? Documents { get; set; }
 }

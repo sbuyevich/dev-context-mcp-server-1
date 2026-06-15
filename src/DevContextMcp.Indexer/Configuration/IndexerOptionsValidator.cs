@@ -43,7 +43,7 @@ public sealed class IndexerOptionsValidator :
         ValidateLimits(options.Indexing, failures);
         ValidateSourceNames(options.NugetPackages, failures);
         ValidateSources(options.NugetPackages, failures);
-        ValidateDocumentation(options.IndexerSource.Documentations, failures);
+        ValidateDocumentation(options.IndexerSource.Documents, failures);
 
         if (options.NugetPackages.Count > 0)
         {
@@ -91,7 +91,7 @@ public sealed class IndexerOptionsValidator :
 
         ConfigurationValidation.ValidatePath(
             documentation.RootPath,
-            "DevContextMcp:IndexerSource:Documentations:RootPath",
+            "DevContextMcp:IndexerSource:Documents:RootPath",
             failures);
         if (!string.IsNullOrWhiteSpace(documentation.RootPath))
         {
@@ -103,7 +103,7 @@ public sealed class IndexerOptionsValidator :
                 if (!Directory.Exists(path))
                 {
                     failures.Add(
-                        $"DevContextMcp:IndexerSource:Documentations:RootPath directory '{path}' does not exist.");
+                        $"DevContextMcp:IndexerSource:Documents:RootPath directory '{path}' does not exist.");
                 }
             }
             catch (Exception exception) when (
@@ -118,7 +118,7 @@ public sealed class IndexerOptionsValidator :
         if (documentation.Extensions.Count == 0)
         {
             failures.Add(
-                "DevContextMcp:IndexerSource:Documentations:Extensions must contain at least one extension.");
+                "DevContextMcp:IndexerSource:Documents:Extensions must contain at least one extension.");
             return;
         }
 

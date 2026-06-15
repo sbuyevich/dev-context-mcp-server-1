@@ -247,7 +247,7 @@ A minimal configuration looks like this:
     "DatabasePath": "data/docs.db",
     "IndexerSource": {
       "NugetsPath": "nugets",
-      "Documentations": {
+      "Documents": {
         "RootPath": "C:\\company\\docs",
         "Extensions": [ ".md", ".txt" ]
       }
@@ -315,7 +315,7 @@ tombstone is the deletion mechanism.
 
 ### Company documentation
 
-The optional `IndexerSource:Documentations` section indexes one directory
+The optional `IndexerSource:Documents` section indexes one directory
 recursively as `docs:company-docs`.
 
 - Only configured extensions are included.

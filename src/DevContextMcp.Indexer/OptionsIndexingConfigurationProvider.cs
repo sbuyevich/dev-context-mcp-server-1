@@ -63,13 +63,13 @@ internal sealed class OptionsIndexingConfigurationProvider(
                     item.DeletedPackageIds,
                     item.Source.MaxPackages))
                 .ToArray(),
-            value.IndexerSource.Documentations is null
+            value.IndexerSource.Documents is null
                 ? null
                 : new DocumentationSourceDefinition(
                     Path.GetFullPath(
-                        value.IndexerSource.Documentations.RootPath,
+                        value.IndexerSource.Documents.RootPath,
                         AppContext.BaseDirectory),
-                    value.IndexerSource.Documentations.Extensions
+                    value.IndexerSource.Documents.Extensions
                         .Select(NormalizeExtension)
                         .ToHashSet(StringComparer.OrdinalIgnoreCase)));
     }

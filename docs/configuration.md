@@ -2,7 +2,7 @@
 
 ## Indexer
 
-### appsetting.json
+### appsettings.json
 
 ```json
  "DevContextMcp": {
@@ -51,7 +51,8 @@ where:
 - `DatabasePath`: path to the SQLite database file used by the indexer.
 
 - `IndexerSource`: source configuration
-   - `NugetsPath`: root folder containing NuGet json configration files
+  - `NugetsPath`: root folder containing NuGet json configration files
+  - `NugetsPath`: root folder containing NuGet JSON configuration files
    - `Documents`: 
         - `RootPath`: root directory containing documentation files to index.
         - `Extensions`: array of allowed file extensions for documentation files. Only these extensions are indexed.
@@ -62,7 +63,7 @@ where:
   - `ServiceIndex`: NuGet v3 service endpoint URI or local folder path containing `.nupkg` files.
   - `MaxPackages`: maximum number of package policy entries that may be applied to this source.
 
-- `Indexing`: list of paramaters for indexing process
+- `Indexing`: list of parameters for the indexing process
     - `MaxPackageBytes`: maximum allowed size for a downloaded package archive.
     - `MaxDocumentBytes`: maximum allowed size for a documentation file.
     - `MaxArchiveEntries`: maximum number of entries allowed inside an archive.
@@ -73,7 +74,7 @@ where:
 
 ### NuGet Configuration
 
-Each indexed NuGet should have json configuration file.
+Each indexed NuGet source should have a JSON configuration file.
 
 ```json
 {
@@ -88,9 +89,9 @@ Each indexed NuGet should have json configuration file.
 
 where:
 
-- `Delete`: Boolean, default: false. if true, then Indexer delete defined `PackageId` from database.
-- `Environment`: it should be one of [`public`, `prod`,`qa`] value defined in  `NugetPackages` of appsettings.json.
-`PackageId`: full NuGet package name.
-`MaxVersionsPerPackage`: How many versions allow for this package.
+- `Delete`: Boolean, default: false. If true, the indexer deletes the specified `PackageId` from the database.
+- `Environment`: It should be one of the values defined in `NugetPackages` in `appsettings.json` (for example: `public`, `prod`, `qa`).
+- `PackageId`: full NuGet package name.
+- `MaxVersionsPerPackage`: maximum number of versions to index for this package.
 `IncludePrerelease`: Boolean, default: false. If true, then include prerelease versions of this package.
 `IncludeUnlisted:`  Boolean, default: false. If true, then include unlisted package versions.

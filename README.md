@@ -66,13 +66,7 @@ independent of feeds and credentials because it never refreshes data itself.
 
 > Solution was desinged and implemented with Codex AI agent using specs and plans defined in [design folder](./design/).
 
-## Indexer
-
-### Configuration
-
-`appsettings.json` has folling configuration settings
-
-`DatabasePath` - SQLite database path shared with server
+[Indexer Configuration](./docs/configuration.md)
 
 
 ## Demo

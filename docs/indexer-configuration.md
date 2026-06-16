@@ -1,8 +1,6 @@
-# Application Configurations
+# Indexer Configurations
 
-## Indexer
-
-### appsettings.json
+## appsettings.json
 
 ```json
  "DevContextMcp": {
@@ -72,7 +70,7 @@ where:
     - `MaxDocumentChars`: maximum number of characters extracted from a document for indexing.
     - `PackageDownloadTimeout`: maximum time allowed to download a package.
 
-### NuGet Configuration
+## NuGet Configuration
 
 Each indexed NuGet source should have a JSON configuration file.
 

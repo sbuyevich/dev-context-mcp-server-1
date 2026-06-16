@@ -249,37 +249,12 @@ Do not put feed credentials or API tokens in package-policy files or the
 checked-in settings. Source authentication is intentionally isolated behind an
 infrastructure interface for future approved credential providers.
 
-## Development and Testing
-
-Run the complete suite:
-
-```powershell
-dotnet test .\DevContextMcp.slnx
-```
-
-The test projects cover:
-
-- Configuration validation and path resolution.
-- Project dependency and registration boundaries.
-- Archive safety, chunking, hashing, and metadata symbol extraction.
-- Version resolution, ranking, response budgets, and serialization.
-- SQLite indexing, FTS retrieval, idempotency, and deletion tombstones.
-- Company-document indexing and retrieval.
-- MCP tool discovery, resources, stdio, HTTP, startup, and failure behavior.
-- Indexer child-process exit codes and diagnostics.
-
-When changing retrieval behavior, preserve deterministic ordering, package
-version isolation, explicit failure statuses, and resolvable citations. When
-changing indexing behavior, preserve archive safety and atomic publication.
-
 ## Further Reading
 
 - [Product specification](design/spec.md)
 - [Solution architecture](design/architecture.md)
-- [Test plan](design/test-plan.md)
-- [Project ideas and background](design/idea.md)
-- [Current work list](design/todo.md)
 - [Stage plans](design/stages)
+- [Test plan](design/test-plan.md)
 
 The design documents contain historical stage context. This README describes
 the current repository and its end-to-end operating model.

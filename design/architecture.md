@@ -63,6 +63,8 @@ Implements Application retrieval abstractions and Indexer ports:
 Infrastructure references Application and Indexer Core. Retrieval and indexing use
 separate registration methods so the Host never composes index writers.
 
+> DevContextMcp.Infrastructure can be implemented using a database or RAG for indexing and retrieving data.
+
 ### DevContextMcp.Server
 
 Is the MCP executable and retrieval composition root:

@@ -1,4 +1,4 @@
-# Indexer Configurations
+# Indexer Configuration
 
 ## appsettings.json
 
@@ -49,11 +49,10 @@ where:
 - `DatabasePath`: path to the SQLite database file used by the indexer.
 
 - `IndexerSource`: source configuration
-  - `NugetsPath`: root folder containing NuGet json configration files
   - `NugetsPath`: root folder containing NuGet JSON configuration files
-   - `Documents`: 
-        - `RootPath`: root directory containing documentation files to index.
-        - `Extensions`: array of allowed file extensions for documentation files. Only these extensions are indexed.
+  - `Documents`: 
+    - `RootPath`: root directory containing documentation files to index.
+    - `Extensions`: array of allowed file extensions for documentation files. Only these extensions are indexed.
 
 - `NugetPackages`: list of configured NuGet sources by `Environment`
   - `Name`: unique identifier for the NuGet source.
@@ -90,6 +89,6 @@ where:
 - `Delete`: Boolean, default: false. If true, the indexer deletes the specified `PackageId` from the database.
 - `Environment`: is one of the values defined in `NugetPackages` in `appsettings.json` (for example: `public`, `prod`, `qa`).
 - `PackageId`: full NuGet package name.
-- `MaxVersionsPerPackage`: maximum number of versions for indexing of package.
-`IncludePrerelease`: Boolean, default: false. If true, then include prerelease versions of this package.
-`IncludeUnlisted:`  Boolean, default: false. If true, then include unlisted package versions.
+- `MaxVersionsPerPackage`: maximum number of versions for indexing of the package.
+- `IncludePrerelease`: Boolean, default: false. If true, then include prerelease versions of this package.
+- `IncludeUnlisted`: Boolean, default: false. If true, then include unlisted package versions.

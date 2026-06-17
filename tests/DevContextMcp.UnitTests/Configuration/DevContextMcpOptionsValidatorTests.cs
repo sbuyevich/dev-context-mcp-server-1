@@ -15,60 +15,31 @@ public sealed class DevContextMcpOptionsValidatorTests
         Assert.Equal(ValidateOptionsResult.Success, result);
     }
 
-    [Theory]
-    [InlineData("stdio")]
-    [InlineData("http")]
-    public void SupportedTransportIsValid(string transport)
+    [Fact]
+    public void LoopbackMcpUrlWithPathIsValid()
     {
         var result = _validator.Validate(
             null,
-            new DevContextMcpOptions { Transport = transport });
+            new DevContextMcpOptions { McpUrl = "http://127.0.0.1:2222/mcp" });
 
         Assert.Equal(ValidateOptionsResult.Success, result);
     }
 
-    [Fact]
-    public void UnsupportedTransportFails()
-    {
-        var result = _validator.Validate(
-            null,
-            new DevContextMcpOptions { Transport = "websocket" });
-
-        AssertFailure(result, "Transport");
-    }
-
     [Theory]
-    [InlineData("https://127.0.0.1:5034")]
-    [InlineData("http://0.0.0.0:5034")]
-    [InlineData("http://example.com:5034")]
+    [InlineData("https://127.0.0.1:5034/mcp")]
+    [InlineData("http://0.0.0.0:5034/mcp")]
+    [InlineData("http://example.com:5034/mcp")]
     [InlineData("not-a-url")]
-    public void UnsafeHttpUrlFails(string url)
+    [InlineData("http://127.0.0.1:5034")]
+    [InlineData("http://127.0.0.1:5034/mcp?mode=test")]
+    [InlineData("http://127.0.0.1:5034/mcp#fragment")]
+    public void UnsafeMcpUrlFails(string url)
     {
         var result = _validator.Validate(
             null,
-            new DevContextMcpOptions
-            {
-                Http = new HttpHostOptions { Url = url }
-            });
+            new DevContextMcpOptions { McpUrl = url });
 
-        AssertFailure(result, "Http:Url");
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData("mcp")]
-    [InlineData("/mcp?mode=test")]
-    [InlineData("/mcp#fragment")]
-    public void InvalidHttpPathFails(string path)
-    {
-        var result = _validator.Validate(
-            null,
-            new DevContextMcpOptions
-            {
-                Http = new HttpHostOptions { Path = path }
-            });
-
-        AssertFailure(result, "Http:Path");
+        AssertFailure(result, "McpUrl");
     }
 
     [Fact]

@@ -8,41 +8,7 @@ using Microsoft.Extensions.Options;
 using ModelContextProtocol.Server;
 using Serilog;
 
-var bootstrapConfiguration = new ConfigurationManager();
-bootstrapConfiguration.SetBasePath(AppContext.BaseDirectory);
-bootstrapConfiguration.AddJsonFile("appsettings.json", optional: true);
-bootstrapConfiguration.AddEnvironmentVariables();
-bootstrapConfiguration.AddCommandLine(args);
-
-var transport = bootstrapConfiguration[
-    $"{DevContextMcpOptions.SectionName}:Transport"] ?? "stdio";
-
-if (transport.Equals("http", StringComparison.Ordinal))
-{
-    await RunHttpAsync(args);
-}
-else
-{
-    await RunStdioAsync(args);
-}
-
-static async Task RunStdioAsync(string[] args)
-{
-    var builder = Host.CreateApplicationBuilder(
-        new HostApplicationBuilderSettings
-        {
-            Args = args,
-            ContentRootPath = AppContext.BaseDirectory
-        });
-
-    ConfigureLogging(builder.Services, builder.Configuration);
-    builder.Services.AddDevContextMcpCore(builder.Configuration);
-    builder.Services.AddMcpServer()
-        .WithStdioServerTransport()
-        .WithDevContextMcpTools();
-
-    await builder.Build().RunAsync();
-}
+await RunHttpAsync(args);
 
 static async Task RunHttpAsync(string[] args)
 {
@@ -63,8 +29,9 @@ static async Task RunHttpAsync(string[] args)
     var options = app.Services
         .GetRequiredService<IOptions<DevContextMcpOptions>>()
         .Value;
-    app.MapMcp(options.Http.Path);
-    await app.RunAsync(options.Http.Url);
+    var mcpUri = new Uri(options.McpUrl, UriKind.Absolute);
+    app.MapMcp(mcpUri.AbsolutePath);
+    await app.RunAsync(mcpUri.GetLeftPart(UriPartial.Authority));
 }
 
 static void ConfigureLogging(

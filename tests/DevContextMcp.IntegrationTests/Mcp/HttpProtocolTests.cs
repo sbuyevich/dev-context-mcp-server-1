@@ -127,10 +127,8 @@ public sealed class HttpProtocolTests
             CreateNoWindow = true
         };
         startInfo.ArgumentList.Add(HostAssemblyPath());
-        startInfo.ArgumentList.Add("--DevContextMcp:Transport=http");
         startInfo.ArgumentList.Add(
-            $"--DevContextMcp:Http:Url=http://127.0.0.1:{port}");
-        startInfo.ArgumentList.Add("--DevContextMcp:Http:Path=/mcp");
+            $"--DevContextMcp:McpUrl=http://127.0.0.1:{port}/mcp");
         startInfo.ArgumentList.Add(
             $"--DevContextMcp:DatabasePath={databasePath}");
         return new Process { StartInfo = startInfo };

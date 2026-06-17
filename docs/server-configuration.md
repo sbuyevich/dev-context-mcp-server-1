@@ -5,11 +5,7 @@
 ```json
 "DevContextMcp": {
    "DatabasePath": "../../../../../database/docs.db",
-    "Transport": "http",
-    "Http": {
-      "Url": "http://127.0.0.1:2222",
-      "Path": "/mcp"
-    },
+    "McpUrl": "http://127.0.0.1:2222/mcp",
     "Retrieval": {
       "EnvironmentOrder": [
         "public"
@@ -34,13 +30,7 @@ where:
 
 - `DatabasePath`: path to the SQLite database file shared with the indexer. Must be the same database the indexer writes to.
 
-- `Transport`: transport protocol for MCP communication. Options:
-  - `"http"` — Streamable HTTP (default)
-  - `"stdio"` — Standard input/output
-
-- `Http`: HTTP transport configuration (only used when `Transport` is `"http"`)
-  - `Url`: server address (e.g., `"http://127.0.0.1:2222"`). Use loopback for local development only.
-  - `Path`: HTTP endpoint path (e.g., `"/mcp"`). Full address becomes `Url + Path`.
+- `McpUrl`: full Streamable HTTP endpoint address, including the endpoint path (e.g., `"http://127.0.0.1:2222/mcp"`). Must be an unauthenticated loopback `http://` URL with a path and no query or fragment. Use loopback for local development only.
 
 - `Retrieval`: behavior configuration for documentation and symbol queries
   - `EnvironmentOrder`: ordered list of environment names for fallback lookup when no environment is specified. First environment in the list is the default.

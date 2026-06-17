@@ -119,7 +119,7 @@ The demo database is created at `database/docs.db`.
 
 ### 3. Start the MCP server
 
-Run the server with the default HTTP transport:
+Run the server:
 
 ```powershell
 dotnet run --project .\src\DevContextMcp.Server\DevContextMcp.Server.csproj
@@ -144,14 +144,6 @@ npx -y @modelcontextprotocol/inspector
 
 Choose **Streamable HTTP** and connect to
 `http://127.0.0.1:2222/mcp`.
-
-For stdio, Inspector can launch the process directly:
-
-```powershell
-npx -y @modelcontextprotocol/inspector dotnet run `
-  --project .\src\DevContextMcp.Server\DevContextMcp.Server.csproj `
-  -- --DevContextMcp:Transport=stdio
-```
 
 Try this workflow after connecting:
 

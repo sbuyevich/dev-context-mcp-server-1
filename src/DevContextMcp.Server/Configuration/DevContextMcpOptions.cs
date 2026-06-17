@@ -7,9 +7,7 @@ public sealed class DevContextMcpOptions
 {
     public const string SectionName = "DevContextMcp";
 
-    public string Transport { get; set; } = "stdio";
-
-    public HttpHostOptions Http { get; set; } = new();
+    public string McpUrl { get; set; } = "http://127.0.0.1:5034/mcp";
 
     public string DatabasePath { get; set; } = "data/docs.db";
 

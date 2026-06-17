@@ -32,8 +32,7 @@ Use 2 terminals.
 Terminal 1: start Host
 
 ```powershell
-.\src\DevContextMcp.Server\bin\Debug\net10.0\DevContextMcp.Server.exe `
-  --DevContextMcp:Transport=http
+.\src\DevContextMcp.Server\bin\Debug\net10.0\DevContextMcp.Server.exe
 ```
 
 Terminal 2: start visual Inspector

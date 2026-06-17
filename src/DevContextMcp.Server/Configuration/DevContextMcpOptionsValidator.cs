@@ -13,7 +13,7 @@ public sealed partial class DevContextMcpOptionsValidator : IValidateOptions<Dev
         ArgumentNullException.ThrowIfNull(options);
 
         var failures = new List<string>();
-        ValidateTransport(options, failures);
+        ValidateMcpUrl(options, failures);
         ConfigurationValidation.ValidatePath(
             options.DatabasePath,
             "DevContextMcp:DatabasePath",
@@ -26,34 +26,20 @@ public sealed partial class DevContextMcpOptionsValidator : IValidateOptions<Dev
             : ValidateOptionsResult.Fail(failures);
     }
 
-    private static void ValidateTransport(
+    private static void ValidateMcpUrl(
         DevContextMcpOptions options,
         List<string> failures)
     {
-        if (options.Transport is not ("stdio" or "http"))
-        {
-            failures.Add("DevContextMcp:Transport must be 'stdio' or 'http'.");
-        }
-
-        if (!Uri.TryCreate(options.Http.Url, UriKind.Absolute, out var uri)
+        if (!Uri.TryCreate(options.McpUrl, UriKind.Absolute, out var uri)
             || uri.Scheme != Uri.UriSchemeHttp
             || !uri.IsLoopback
-            || uri.AbsolutePath != "/"
+            || uri.AbsolutePath == "/"
             || !string.IsNullOrEmpty(uri.Query)
             || !string.IsNullOrEmpty(uri.Fragment)
             || !string.IsNullOrEmpty(uri.UserInfo))
         {
             failures.Add(
-                "DevContextMcp:Http:Url must be an absolute HTTP loopback URL without a path, query, fragment, or credentials.");
-        }
-
-        if (string.IsNullOrWhiteSpace(options.Http.Path)
-            || !options.Http.Path.StartsWith("/", StringComparison.Ordinal)
-            || options.Http.Path.Contains("?", StringComparison.Ordinal)
-            || options.Http.Path.Contains("#", StringComparison.Ordinal))
-        {
-            failures.Add(
-                "DevContextMcp:Http:Path must start with '/' and must not contain a query or fragment.");
+                "DevContextMcp:McpUrl must be an absolute HTTP loopback URL with an endpoint path and without a query, fragment, or credentials.");
         }
     }
 

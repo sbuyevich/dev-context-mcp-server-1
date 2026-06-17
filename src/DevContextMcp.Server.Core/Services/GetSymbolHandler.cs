@@ -6,7 +6,7 @@ using DevContextMcp.Server.Core.Models;
 namespace DevContextMcp.Server.Core.Services;
 
 internal sealed class GetSymbolHandler(
-    IConfigurationProvider configurationProvider,
+    RetrievalSettings settings,
     ILibraryResolver libraryResolver,
     INuGetReadStore store,
     ICitationFactory citationFactory) : IGetSymbolHandler
@@ -35,7 +35,6 @@ internal sealed class GetSymbolHandler(
             return NotFound("invalid_version", "The requested package version is not valid.");
         }
 
-        var settings = configurationProvider.GetSettings();
         using var timeout = RetrievalHandlerSupport.CreateTimeout(
             settings.Limits.QueryTimeout,
             cancellationToken);

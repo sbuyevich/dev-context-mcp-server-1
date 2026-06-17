@@ -6,7 +6,7 @@ using NuGet.Versioning;
 namespace DevContextMcp.Server.Core.Services;
 
 internal sealed class ListVersionsHandler(
-    IConfigurationProvider configurationProvider,
+    RetrievalSettings settings,
     ILibraryResolver libraryResolver) : IListVersionsHandler
 {
     public async Task<ListVersionsResponse> HandleAsync(
@@ -21,7 +21,6 @@ internal sealed class ListVersionsHandler(
                 "The library ID must use the 'nuget:' or 'docs:' prefix.");
         }
 
-        var settings = configurationProvider.GetSettings();
         using var timeout = RetrievalHandlerSupport.CreateTimeout(
             settings.Limits.QueryTimeout,
             cancellationToken);

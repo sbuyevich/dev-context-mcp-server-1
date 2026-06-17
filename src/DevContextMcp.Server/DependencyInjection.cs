@@ -1,10 +1,9 @@
 using DevContextMcp.Infrastructure;
 using DevContextMcp.Server.Configuration;
 using DevContextMcp.Server.Core;
-using DevContextMcp.Server.Core.Services;
+using DevContextMcp.Server.Core.Models;
 using DevContextMcp.Server.Diagnostics;
 using DevContextMcp.Server.Resources;
-using DevContextMcp.Server.Retrieval;
 using DevContextMcp.Server.Tools;
 using Microsoft.Extensions.Options;
 
@@ -27,9 +26,22 @@ public static class DependencyInjection
 
         services.AddApplication();
         services.AddRetrievalInfrastructure();
-        services.AddSingleton<Core.Services.IConfigurationProvider>(provider =>
-            new OptionsRetrievalConfigurationProvider(
-                provider.GetRequiredService<IOptions<DevContextMcpOptions>>()));
+        services.AddSingleton(provider =>
+        {
+            var value = provider.GetRequiredService<IOptions<DevContextMcpOptions>>().Value;
+            var retrieval = value.Retrieval;
+            return new RetrievalSettings(
+                Path.GetFullPath(value.DatabasePath, AppContext.BaseDirectory),
+                retrieval.EnvironmentOrder.ToArray(),
+                retrieval.SourceOrder.ToArray(),
+                new RetrievalLimits(
+                    retrieval.DefaultMaxResults,
+                    retrieval.MaxResults,
+                    retrieval.MaxResponseBytes,
+                    retrieval.QueryTimeout,
+                    retrieval.MinimumEvidenceScore,
+                    retrieval.AmbiguousSymbolLimit));
+        });
         services.AddSingleton<ToolRegistrationCatalog>();
         services.AddSingleton<ToolInvocationLogger>();
         services.AddHostedService<StartupDiagnosticsHostedService>();

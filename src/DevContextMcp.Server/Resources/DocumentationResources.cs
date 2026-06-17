@@ -4,13 +4,13 @@ using DevContextMcp.Server.Core.Services;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using RetrievalConfigurationProvider = DevContextMcp.Server.Core.Services.IConfigurationProvider;
+using DevContextMcp.Server.Core.Models;
 
 namespace DevContextMcp.Server.Resources;
 
 [McpServerResourceType]
 public sealed class DocumentationResources(
-    RetrievalConfigurationProvider configurationProvider,
+    RetrievalSettings settings,
     INuGetReadStore store,
     ICitationFactory citationFactory)
 {
@@ -23,7 +23,6 @@ public sealed class DocumentationResources(
         CancellationToken cancellationToken)
     {
         var decodedPath = DecodePath(path);
-        var settings = configurationProvider.GetSettings();
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(settings.Limits.QueryTimeout);
         var resource = await store.ReadDocumentationAsync(

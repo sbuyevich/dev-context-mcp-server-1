@@ -6,7 +6,7 @@ using DevContextMcp.Server.Core.Models;
 namespace DevContextMcp.Server.Core.Services;
 
 internal sealed class ResolveLibraryHandler(
-    IConfigurationProvider configurationProvider,
+    RetrievalSettings settings,
     INuGetReadStore store,
     IVersionResolver versionResolver) : IResolveLibraryHandler
 {
@@ -24,7 +24,6 @@ internal sealed class ResolveLibraryHandler(
                 "The environment must contain only letters, numbers, '.', '_', or '-'.");
         }
 
-        var settings = configurationProvider.GetSettings();
         using var timeout = RetrievalHandlerSupport.CreateTimeout(
             settings.Limits.QueryTimeout,
             cancellationToken);

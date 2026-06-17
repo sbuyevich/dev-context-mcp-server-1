@@ -15,7 +15,6 @@ public sealed class GetSymbolHandlerTests
     private const string SourceName = "qa";
     private const string Version = "1.2.3";
 
-    private readonly Mock<IConfigurationProvider> _configurationProvider = new();
     private readonly Mock<ILibraryResolver> _libraryResolver = new();
     private readonly Mock<INuGetReadStore> _store = new();
     private readonly Mock<ICitationFactory> _citationFactory = new();
@@ -24,7 +23,7 @@ public sealed class GetSymbolHandlerTests
     public GetSymbolHandlerTests()
     {
         _target = new GetSymbolHandler(
-            _configurationProvider.Object,
+            CreateSettings(),
             _libraryResolver.Object,
             _store.Object,
             _citationFactory.Object);
@@ -55,7 +54,6 @@ public sealed class GetSymbolHandlerTests
         var request = new GetSymbolRequest(
             $"nuget:missing/{PackageId}",
             "Company.Widget");
-        SetupSettings();
         _libraryResolver
             .Setup(resolver => resolver.ResolveAsync(
                 It.IsAny<string>(),
@@ -312,7 +310,6 @@ public sealed class GetSymbolHandlerTests
         var request = new GetSymbolRequest(
             $"nuget:{SourceName}/{PackageId}",
             "Company.Widget");
-        SetupSettings();
         _libraryResolver
             .Setup(resolver => resolver.ResolveAsync(
                 It.IsAny<string>(),
@@ -337,18 +334,10 @@ public sealed class GetSymbolHandlerTests
         VerifyNoOtherCalls();
     }
 
-    private void SetupSettings()
-    {
-        _configurationProvider
-            .Setup(provider => provider.GetSettings())
-            .Returns(CreateSettings());
-    }
-
     private void SetupResolvedLibrary(
         bool deprecated = false,
         IReadOnlyList<string>? warningCodes = null)
     {
-        SetupSettings();
         _libraryResolver
             .Setup(resolver => resolver.ResolveAsync(
                 It.IsAny<string>(),
@@ -366,9 +355,6 @@ public sealed class GetSymbolHandlerTests
         GetSymbolRequest request,
         string environment)
     {
-        _configurationProvider.Verify(
-            provider => provider.GetSettings(),
-            Times.Once);
         _libraryResolver.Verify(
             resolver => resolver.ResolveAsync(
                 DatabasePath,
@@ -408,7 +394,6 @@ public sealed class GetSymbolHandlerTests
 
     private void VerifyNoDependencyCalls()
     {
-        _configurationProvider.VerifyNoOtherCalls();
         _libraryResolver.VerifyNoOtherCalls();
         _store.VerifyNoOtherCalls();
         _citationFactory.VerifyNoOtherCalls();
@@ -416,7 +401,6 @@ public sealed class GetSymbolHandlerTests
 
     private void VerifyNoOtherCalls()
     {
-        _configurationProvider.VerifyNoOtherCalls();
         _libraryResolver.VerifyNoOtherCalls();
         _store.VerifyNoOtherCalls();
         _citationFactory.VerifyNoOtherCalls();

@@ -6,7 +6,7 @@ using DevContextMcp.Server.Core.Models;
 namespace DevContextMcp.Server.Core.Services;
 
 internal sealed class QueryDocsHandler(
-    IConfigurationProvider configurationProvider,
+    RetrievalSettings settings,
     ILibraryResolver libraryResolver,
     INuGetReadStore store,
     ICitationFactory citationFactory,
@@ -34,7 +34,6 @@ internal sealed class QueryDocsHandler(
             return NotFound("invalid_version", "The requested package version is not valid.");
         }
 
-        var settings = configurationProvider.GetSettings();
         using var timeout = RetrievalHandlerSupport.CreateTimeout(
             settings.Limits.QueryTimeout,
             cancellationToken);

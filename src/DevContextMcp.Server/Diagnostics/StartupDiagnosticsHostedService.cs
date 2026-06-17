@@ -3,12 +3,12 @@ using DevContextMcp.Server.Core.Services;
 using DevContextMcp.Server.Tools;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using RetrievalConfigurationProvider = DevContextMcp.Server.Core.Services.IConfigurationProvider;
+using DevContextMcp.Server.Core.Models;
 
 namespace DevContextMcp.Server.Diagnostics;
 
 internal sealed class StartupDiagnosticsHostedService(
-    RetrievalConfigurationProvider retrievalConfigurationProvider,
+    RetrievalSettings settings,
     ToolRegistrationCatalog toolCatalog,
     ILocalDependencyCheck localDependencyCheck,
     IResolveLibraryHandler resolveLibraryHandler,
@@ -29,7 +29,6 @@ internal sealed class StartupDiagnosticsHostedService(
             throw new InvalidOperationException("The registered MCP tool catalog is incomplete.");
         }
 
-        var settings = retrievalConfigurationProvider.GetSettings();
         var localResults = await localDependencyCheck.CheckAsync(
             settings.DatabasePath,
             cancellationToken);

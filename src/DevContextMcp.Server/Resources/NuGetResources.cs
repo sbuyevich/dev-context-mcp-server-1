@@ -4,13 +4,13 @@ using DevContextMcp.Server.Core.Services;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-using RetrievalConfigurationProvider = DevContextMcp.Server.Core.Services.IConfigurationProvider;
+using DevContextMcp.Server.Core.Models;
 
 namespace DevContextMcp.Server.Resources;
 
 [McpServerResourceType]
 public sealed class NuGetResources(
-    RetrievalConfigurationProvider configurationProvider,
+    RetrievalSettings settings,
     INuGetReadStore store,
     ICitationFactory citationFactory)
 {
@@ -25,7 +25,6 @@ public sealed class NuGetResources(
         string path,
         CancellationToken cancellationToken)
     {
-        var settings = configurationProvider.GetSettings();
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(settings.Limits.QueryTimeout);
         var resource = await store.ReadArtifactAsync(
@@ -63,7 +62,6 @@ public sealed class NuGetResources(
         string qualifiedName,
         CancellationToken cancellationToken)
     {
-        var settings = configurationProvider.GetSettings();
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(settings.Limits.QueryTimeout);
         var resource = await store.ReadSymbolAsync(

@@ -1,10 +1,10 @@
 using DevContextMcp.Indexer;
 using DevContextMcp.Indexer.Configuration;
 using DevContextMcp.Server;
+using DevContextMcp.Server.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using RetrievalConfigurationProvider = DevContextMcp.Server.Core.Services.IConfigurationProvider;
 
 namespace DevContextMcp.UnitTests.Configuration;
 
@@ -12,7 +12,6 @@ public sealed class ServerDatabasePathResolutionTests : IDisposable
 {
     private readonly IConfigurationRoot _configuration;
     private readonly ServiceProvider _serviceProvider;
-    private readonly RetrievalConfigurationProvider _target;
 
     public ServerDatabasePathResolutionTests()
     {
@@ -27,8 +26,6 @@ public sealed class ServerDatabasePathResolutionTests : IDisposable
         services.AddLogging();
         services.AddDevContextMcpCore(_configuration);
         _serviceProvider = services.BuildServiceProvider();
-        _target = _serviceProvider
-            .GetRequiredService<RetrievalConfigurationProvider>();
     }
 
     // Purpose: resolves a relative server database path from the executable directory
@@ -40,7 +37,7 @@ public sealed class ServerDatabasePathResolutionTests : IDisposable
         _configuration["DevContextMcp:DatabasePath"] = relativePath;
 
         // act
-        var actual = _target.GetSettings();
+        var actual = _serviceProvider.GetRequiredService<RetrievalSettings>();
 
         // assert
         Assert.Equal(
@@ -57,7 +54,7 @@ public sealed class ServerDatabasePathResolutionTests : IDisposable
         _configuration["DevContextMcp:DatabasePath"] = absolutePath;
 
         // act
-        var actual = _target.GetSettings();
+        var actual = _serviceProvider.GetRequiredService<RetrievalSettings>();
 
         // assert
         Assert.Equal(Path.GetFullPath(absolutePath), actual.DatabasePath);
